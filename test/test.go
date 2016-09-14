@@ -19,7 +19,7 @@ func main() {
 	handler.UID = "bucket-of-jackbauer"
 
 	//Tag is optional
-	url := "http://ww1.sinaimg.cn/mw690/8d2f96acjw1f469ypuu3lj20j60j6tbe.jpg" //"http://www.yourdomain.com/img/1.jpg"
+	url := "http://www.yourdomain.com/img/1.jpg"
 	imgLink := rcn.NewRemoteImage(url).Tag("Remote Image")
 	imgPath := rcn.NewLocalImage("img/2.jpg").Tag("Local Image")
 	fileBytes, e2 := ioutil.ReadFile("img/1.jpg")
@@ -34,7 +34,7 @@ func main() {
 	images1 := []*rcn.Image{imgLink}
 	images2 := []*rcn.Image{imgPath, imgBinary}
 
-	secretID := "57beb14ed85ac2e44e4b1f83" //"your-secret-id"
+	secretID := "your-secret-id"
 	send(handler, secretID, images1)
 	send(handler, secretID, images2)
 }
