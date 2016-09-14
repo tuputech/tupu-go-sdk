@@ -8,6 +8,9 @@ Golang SDK for TUPU visual recognition service (v1.1)
 #### v1.1
 - 1st ready version
 
+## Installation
+go get github.com/tuputech/tupu-go-sdk/recognition
+
 ## Example
 
 ```
