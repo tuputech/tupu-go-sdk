@@ -1,4 +1,6 @@
 
+.vscode/
+
 test/img/
 
 test/rsa_private_key.pem
