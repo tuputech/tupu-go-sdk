@@ -1,11 +1,22 @@
+# TUPU GO SDK
+
+Golang SDK for TUPU visual recognition service (v1.1)
+######  
+<https://www.tuputech.com>
+
+## Changelogs
+#### v1.1
+- 1st ready version
+
+## Example
+
+```
 package main
 
 import (
 	"fmt"
 	"io/ioutil"
-	//rcn "recognition"
 	"time"
-
 	rcn "github.com/tuputech/tupu-go-sdk/recognition"
 )
 
@@ -56,3 +67,15 @@ func send(h *rcn.Handler, secretID string, images []*rcn.Image, tags []string) {
 	}
 	fmt.Println("---------------")
 }
+```
+
+### func Perform
+func (h *Handler) Perform(secretID string, images []*Image, tags []string) (result string, statusCode int, e error)
+
+- **$secretId**: secret-id for recognition tasks
+- **$images**: array of image URLs or paths or file binary (don't mix use of URL and path or binary in one call)
+- **$tags**: array of tags for images (optional)
+
+## License
+
+[MIT](http://www.opensource.org/licenses/mit-license.php)

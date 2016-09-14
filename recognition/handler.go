@@ -54,7 +54,7 @@ func NewHandlerWithURL(privateKeyPath, url string) (h *Handler, e error) {
 }
 
 // Perform is the major method for initiating a recognition request
-func (h *Handler) Perform(secretID string, images []*Image) (result string, statusCode int, e error) {
+func (h *Handler) Perform(secretID string, images []*Image, tags []string) (result string, statusCode int, e error) {
 	t := time.Now()
 	timestamp := strconv.FormatInt(t.Unix(), 10)
 	r := rand.New(rand.NewSource(t.UnixNano()))
@@ -79,7 +79,7 @@ func (h *Handler) Perform(secretID string, images []*Image) (result string, stat
 		req  *http.Request
 		resp *http.Response
 	)
-	if req, e = h.request(&url, &params, images); e != nil {
+	if req, e = h.request(&url, &params, images, tags); e != nil {
 		log.Fatal(e)
 		return
 	}
@@ -118,7 +118,7 @@ func (h *Handler) verify(message []byte, sig string) error {
 	return nil
 }
 
-func (h *Handler) request(url *string, params *map[string]string, images []*Image) (req *http.Request, e error) {
+func (h *Handler) request(url *string, params *map[string]string, images []*Image, tags []string) (req *http.Request, e error) {
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 
@@ -126,13 +126,19 @@ func (h *Handler) request(url *string, params *map[string]string, images []*Imag
 		_ = writer.WriteField(key, val)
 	}
 
-	for _, img := range images {
-		var imgSet bool
-		if imgSet, e = addImageField(writer, img); e != nil {
-			return
-		}
-		if imgSet && len(img.tag) > 8 {
-			_ = writer.WriteField("tag", img.tag)
+	tagsCnt := 0
+	if tags != nil {
+		tagsCnt = len(tags)
+	}
+	tag := ""
+	for i, img := range images {
+		if e = addImageField(writer, img, i); e == nil {
+			if i < tagsCnt {
+				tag = tags[i]
+			}
+			if len(tag) > 0 {
+				_ = writer.WriteField("tag", tag)
+			}
 		}
 	}
 
@@ -145,12 +151,12 @@ func (h *Handler) request(url *string, params *map[string]string, images []*Imag
 	req.Header.Set("User-Agent", h.UserAgent)
 	req.Header.Set("Timeout", "30")
 
-	// fmt.Println(req.Header)
-	// fmt.Println(body.String())
+	fmt.Println(req.Header)
+	fmt.Println(body.String())
 	return
 }
 
-func addImageField(writer *multipart.Writer, img *Image) (b bool, e error) {
+func addImageField(writer *multipart.Writer, img *Image, idx int) (e error) {
 	switch {
 	case len(img.url) > 0:
 		_ = writer.WriteField("image", img.url)
@@ -163,26 +169,20 @@ func addImageField(writer *multipart.Writer, img *Image) (b bool, e error) {
 			return
 		}
 		part, e = writer.CreateFormFile("image", filepath.Base(img.path))
-		if e != nil {
-			return
-		}
-		if _, e = io.Copy(part, file); e != nil {
-			return
+		if e == nil {
+			_, e = io.Copy(part, file)
 		}
 		file.Close()
 	case img.buf != nil && img.buf.Len() > 0 && len(img.filename) > 0:
 		var part io.Writer
 		part, e = writer.CreateFormFile("image", img.filename)
-		if e != nil {
-			return
-		}
-		if _, e = io.Copy(part, img.buf); e != nil {
-			return
+		if e == nil {
+			_, e = io.Copy(part, img.buf)
 		}
 	default:
-		return
+		return fmt.Errorf("Invalid image resource at index [%v]", idx)
 	}
-	return true, nil
+	return
 }
 
 func (h *Handler) processResp(resp *http.Response) (result string, e error) {

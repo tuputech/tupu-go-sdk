@@ -8,7 +8,7 @@ type Image struct {
 	path     string
 	buf      *bytes.Buffer
 	filename string
-	tag      string
+	//tag      string
 }
 
 // NewRemoteImage is an initializer for create image resource with a url
@@ -34,10 +34,10 @@ func NewBinaryImage(buf []byte, filename string) *Image {
 }
 
 // Tag is an helper to set property tag of Image and return Image itself
-func (i *Image) Tag(tag string) *Image {
-	i.tag = tag
-	return i
-}
+// func (i *Image) Tag(tag string) *Image {
+// 	i.tag = tag
+// 	return i
+// }
 
 // ClearBuffer is an helper to set property tag of Image and return Image itself
 func (i *Image) ClearBuffer() {

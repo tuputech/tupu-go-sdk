@@ -4,3 +4,5 @@
 test/img/
 
 test/rsa_private_key.pem
+
+test/test_local.go
