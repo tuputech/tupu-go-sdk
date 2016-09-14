@@ -16,14 +16,13 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"util"
 )
 
 // Handler is a client-side helper to access TUPU visual recognition service
 type Handler struct {
 	apiURL   string
-	signer   util.Signer
-	verifier util.Verifier
+	signer   Signer
+	verifier Verifier
 	//
 	UID       string //for sub-user statistics and billing
 	UserAgent string
@@ -36,10 +35,10 @@ func NewHandler(privateKeyPath string) (*Handler, error) {
 	h.UserAgent = "tupu-client/1.0"
 
 	var e error
-	if h.verifier, e = util.LoadTupuPublicKey(); e != nil {
+	if h.verifier, e = LoadTupuPublicKey(); e != nil {
 		return nil, e
 	}
-	if h.signer, e = util.LoadPrivateKey(privateKeyPath); e != nil {
+	if h.signer, e = LoadPrivateKey(privateKeyPath); e != nil {
 		return nil, e
 	}
 	return h, nil
