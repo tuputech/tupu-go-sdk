@@ -21,12 +21,11 @@ func main() {
 
 	url1 := "http://www.yourdomain.com/img/1.jpg"
 	url2 := "http://www.yourdomain.com/img/2.jpg"
-
-	images1 := []*rcn.Image{rcn.NewRemoteImage(url1), rcn.NewRemoteImage(url2)}
+	images1 := []string{url1, url2}
 	//No tag for images
-	send(handler, secretID, images1, nil)
+	printResult(handler.PerformWithURL(secretID, images1, nil))
 	//Number of tags less than number of images, the rest images will use the last tag
-	send(handler, secretID, images1, []string{"Remote Image"})
+	printResult(handler.PerformWithURL(secretID, images1, []string{"Remote Image"}))
 
 	//Using local file or binary data
 	fileBytes, e2 := ioutil.ReadFile("img/1.jpg")
@@ -37,22 +36,21 @@ func main() {
 	imgBinary := rcn.NewBinaryImage(fileBytes, "1.jpg")
 	defer imgBinary.ClearBuffer()
 	images2 := []*rcn.Image{rcn.NewLocalImage("img/2.jpg"), imgBinary}
-	send(handler, secretID, images2, []string{"Local Image", "Using Buffer"})
+	printResult(handler.Perform(secretID, images2, []string{"Local Image", "Using Buffer"}))
 }
 
-func send(h *rcn.Handler, secretID string, images []*rcn.Image, tags []string) {
-	json, statusCode, e := h.Perform(secretID, images, tags)
+func printResult(result string, statusCode int, e error) {
 	if e != nil {
 		fmt.Printf("Failed: %v\n", e)
 		return
 	}
-	fmt.Println("---------------")
+	fmt.Println("-------- v1.2 --------")
 	fmt.Printf("Status-Code: %v\n-----\n", statusCode)
 
-	r := rcn.ParseResult(json)
+	r := rcn.ParseResult(result)
 	fmt.Printf("- Code: %v %v\n- Time: %v\n", r.Code, r.Message, time.Unix(r.Timestamp, 0))
 	for k, v := range r.Tasks {
 		fmt.Printf("- Task: [%v]\n%v\n", k, v)
 	}
-	fmt.Println("---------------")
+	fmt.Println("----------------------")
 }

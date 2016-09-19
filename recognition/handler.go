@@ -53,6 +53,24 @@ func NewHandlerWithURL(privateKeyPath, url string) (h *Handler, e error) {
 	return h, nil
 }
 
+// PerformWithURL is a shortcut for initiating a recognition request with URLs of images
+func (h *Handler) PerformWithURL(secretID string, imageURLs []string, tags []string) (result string, statusCode int, e error) {
+	var images []*Image
+	for _, val := range imageURLs {
+		images = append(images, NewRemoteImage(val))
+	}
+	return h.Perform(secretID, images, tags)
+}
+
+// PerformWithPath is a shortcut for initiating a recognition request with paths of images
+func (h *Handler) PerformWithPath(secretID string, imagePaths []string, tags []string) (result string, statusCode int, e error) {
+	var images []*Image
+	for _, val := range imagePaths {
+		images = append(images, NewLocalImage(val))
+	}
+	return h.Perform(secretID, images, tags)
+}
+
 // Perform is the major method for initiating a recognition request
 func (h *Handler) Perform(secretID string, images []*Image, tags []string) (result string, statusCode int, e error) {
 	t := time.Now()
@@ -151,8 +169,8 @@ func (h *Handler) request(url *string, params *map[string]string, images []*Imag
 	req.Header.Set("User-Agent", h.UserAgent)
 	req.Header.Set("Timeout", "30")
 
-	fmt.Println(req.Header)
-	fmt.Println(body.String())
+	// fmt.Println(req.Header)
+	// fmt.Println(body.String())
 	return
 }
 
