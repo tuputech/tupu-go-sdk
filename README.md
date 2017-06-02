@@ -1,10 +1,13 @@
 # TUPU GO SDK
 
-Golang SDK for TUPU visual recognition service (v1.1)
+Golang SDK for TUPU visual recognition service (v1.3)
 ######  
 <https://www.tuputech.com>
 
 ## Changelogs
+#### v1.3
+- fixed bug in parsing result
+
 #### v1.2
 - add shortcut methods for URL or path
 
