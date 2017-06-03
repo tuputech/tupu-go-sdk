@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"math/rand"
 	"mime/multipart"
 	"net/http"
@@ -98,16 +97,16 @@ func (h *Handler) Perform(secretID string, images []*Image, tags []string) (resu
 		resp *http.Response
 	)
 	if req, e = h.request(&url, &params, images, tags); e != nil {
-		log.Fatal(e)
+		//log.Fatal(e)
 		return
 	}
 	client := &http.Client{}
 	if resp, e = client.Do(req); e != nil {
-		log.Fatal(e)
+		//log.Fatal(e)
 		return
 	}
 	if result, e = h.processResp(resp); e != nil {
-		log.Fatal(e)
+		//log.Fatal(e)
 		return
 	}
 	statusCode = resp.StatusCode
