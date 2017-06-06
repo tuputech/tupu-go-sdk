@@ -25,6 +25,7 @@ type Handler struct {
 	//
 	UID       string //for sub-user statistics and billing
 	UserAgent string
+	Client    *http.Client
 }
 
 // NewHandler is an initializer for a Handler
@@ -32,6 +33,7 @@ func NewHandler(privateKeyPath string) (*Handler, error) {
 	h := new(Handler)
 	h.apiURL = "http://api.open.tuputech.com/v3/recognition/"
 	h.UserAgent = "tupu-client/1.0"
+	h.Client = &http.Client{}
 
 	var e error
 	if h.verifier, e = LoadTupuPublicKey(); e != nil {
@@ -100,8 +102,8 @@ func (h *Handler) Perform(secretID string, images []*Image, tags []string) (resu
 		//log.Fatal(e)
 		return
 	}
-	client := &http.Client{}
-	if resp, e = client.Do(req); e != nil {
+
+	if resp, e = h.Client.Do(req); e != nil {
 		//log.Fatal(e)
 		return
 	}

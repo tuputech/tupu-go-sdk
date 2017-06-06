@@ -5,6 +5,9 @@ Golang SDK for TUPU visual recognition service (v1.4)
 <https://www.tuputech.com>
 
 ## Changelogs
+#### v1.5
+- support setting http client
+
 #### v1.4
 - removed log.Fatal
 
@@ -43,6 +46,14 @@ func main() {
 	}
 	//Optional Step: set identity of sub-user if necessary
 	//handler.UID = "bucket-of-jackbauer"
+
+	//Optional Step: using http-client created by your own
+	// tr := &http.Transport{
+	// 	MaxIdleConns:       10,
+	// 	IdleConnTimeout:    30 * time.Second,
+	// 	DisableCompression: true,
+	// }
+	// handler.Client = &http.Client{Transport: tr}
 
 	url1 := "http://www.yourdomain.com/img/1.jpg"
 	url2 := "http://www.yourdomain.com/img/2.jpg"
