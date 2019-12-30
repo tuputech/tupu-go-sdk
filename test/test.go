@@ -52,7 +52,7 @@ func printResult(result string, statusCode int, e error) {
 		fmt.Printf("Failed: %v\n", e)
 		return
 	}
-	fmt.Println("-------- v1.2 --------")
+	fmt.Println("-------- v1.6 --------")
 	fmt.Printf("Status-Code: %v\n-----\n", statusCode)
 
 	r := rcn.ParseResult(result)
