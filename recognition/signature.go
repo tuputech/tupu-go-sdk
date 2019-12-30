@@ -34,7 +34,7 @@ func (r *RsaPrivateKey) Sign(data []byte) ([]byte, error) {
 func LoadPrivateKey(path string) (Signer, error) {
 	fileBytes, e := ioutil.ReadFile(path)
 	if e != nil {
-		return nil, fmt.Errorf("Could not load private key: %v", e)
+		return nil, fmt.Errorf("could not load private key: %v", e)
 	}
 	return parsePrivateKey(fileBytes)
 }

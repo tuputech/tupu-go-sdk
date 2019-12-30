@@ -17,6 +17,15 @@ import (
 	"time"
 )
 
+
+
+var (
+	ErrBadGateway = errors.New("502 Bad Gateway")
+	ErrServiceUnavailable = errors.New("503 Service Unavailable")
+)
+
+
+
 // Handler is a client-side helper to access TUPU visual recognition service
 type Handler struct {
 	apiURL   string
@@ -107,11 +116,10 @@ func (h *Handler) Perform(secretID string, images []*Image, tags []string) (resu
 		//log.Fatal(e)
 		return
 	}
-	if result, e = h.processResp(resp); e != nil {
+	if result, statusCode, e = h.processResp(resp); e != nil {
 		//log.Fatal(e)
 		return
 	}
-	statusCode = resp.StatusCode
 	//fmt.Println(resp.Header)
 	return
 }
@@ -119,7 +127,7 @@ func (h *Handler) Perform(secretID string, images []*Image, tags []string) (resu
 func (h *Handler) sign(message []byte) (string, error) {
 	signed, e := h.signer.Sign(message)
 	if e != nil {
-		return "", fmt.Errorf("Could not sign message: %v", e)
+		return "", fmt.Errorf("could not sign message: %v", e)
 	}
 	return base64.StdEncoding.EncodeToString(signed), nil
 }
@@ -127,12 +135,12 @@ func (h *Handler) sign(message []byte) (string, error) {
 func (h *Handler) verify(message []byte, sig string) error {
 	data, e := base64.StdEncoding.DecodeString(sig)
 	if e != nil {
-		return fmt.Errorf("Could not decode with Base64: %v", e)
+		return fmt.Errorf("could not decode with Base64: %v", e)
 	}
 
 	e = h.verifier.Verify(message, data)
 	if e != nil {
-		return fmt.Errorf("Could not verify request: %v", e)
+		return fmt.Errorf("could not verify request: %v", e)
 	}
 	return nil
 }
@@ -165,7 +173,9 @@ func (h *Handler) request(url *string, params *map[string]string, images []*Imag
 		return
 	}
 
-	req, e = http.NewRequest("POST", *url, body)
+	if req, e = http.NewRequest("POST", *url, body); e != nil {
+		return
+	}
 	req.Header.Set("Content-Type", writer.FormDataContentType())
 	req.Header.Set("User-Agent", h.UserAgent)
 	req.Header.Set("Timeout", "30")
@@ -199,17 +209,31 @@ func addImageField(writer *multipart.Writer, img *Image, idx int) (e error) {
 			_, e = io.Copy(part, img.buf)
 		}
 	default:
-		return fmt.Errorf("Invalid image resource at index [%v]", idx)
+		return fmt.Errorf("invalid image resource at index [%v]", idx)
 	}
 	return
 }
 
-func (h *Handler) processResp(resp *http.Response) (result string, e error) {
+func (h *Handler) processResp(resp *http.Response) (result string, statusCode int, e error) {
+	statusCode = resp.StatusCode
+	if resp.StatusCode > 500 {
+		if resp.StatusCode == 502 {
+			e = ErrBadGateway
+		} else if resp.StatusCode == 503 {
+			e = ErrServiceUnavailable
+		} else {
+			e = errors.New(resp.Status)
+		}
+		return
+	}
+
 	body := &bytes.Buffer{}
 	if _, e = body.ReadFrom(resp.Body); e != nil {
 		return
 	}
-	resp.Body.Close()
+	if e = resp.Body.Close(); e != nil {
+		return
+	}
 
 	var (
 		data map[string]string
@@ -219,9 +243,12 @@ func (h *Handler) processResp(resp *http.Response) (result string, e error) {
 	if e = json.Unmarshal(body.Bytes(), &data); e != nil {
 		return
 	} else if result, ok = data["json"]; !ok {
-		return "", errors.New("No result string")
+		e = errors.New("no result string")
+		return
 	} else if sig, ok = data["signature"]; !ok {
-		return "", errors.New("No server signature")
+		e = errors.New("no server signature")
+		return
 	}
-	return result, h.verify([]byte(result), sig)
+	e = h.verify([]byte(result), sig)
+	return
 }

@@ -5,6 +5,9 @@ Golang SDK for TUPU visual recognition service (v1.4)
 <https://www.tuputech.com>
 
 ## Changelogs
+#### v1.6
+- fix to return failure response status code
+
 #### v1.5
 - support setting http client
 

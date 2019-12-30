@@ -10,7 +10,7 @@ import (
 	"fmt"
 )
 
-//RsaPublicKey is a holder of RSA publick key
+//RsaPublicKey is a holder of RSA public key
 type RsaPublicKey struct {
 	*rsa.PublicKey
 }
