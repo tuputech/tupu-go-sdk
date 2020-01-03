@@ -216,16 +216,16 @@ func addImageField(writer *multipart.Writer, img *Image, idx int) (e error) {
 
 func (h *Handler) processResp(resp *http.Response) (result string, statusCode int, e error) {
 	statusCode = resp.StatusCode
-	if resp.StatusCode > 500 {
-		if resp.StatusCode == 502 {
-			e = ErrBadGateway
-		} else if resp.StatusCode == 503 {
-			e = ErrServiceUnavailable
-		} else {
-			e = errors.New(resp.Status)
-		}
-		return
-	}
+	//if resp.StatusCode > 500 {
+	//	if resp.StatusCode == 502 {
+	//		e = ErrBadGateway
+	//	} else if resp.StatusCode == 503 {
+	//		e = ErrServiceUnavailable
+	//	} else {
+	//		e = errors.New(resp.Status)
+	//	}
+	//	return
+	//}
 
 	body := &bytes.Buffer{}
 	if _, e = body.ReadFrom(resp.Body); e != nil {
@@ -240,7 +240,10 @@ func (h *Handler) processResp(resp *http.Response) (result string, statusCode in
 		ok   bool
 		sig  string
 	)
-	if e = json.Unmarshal(body.Bytes(), &data); e != nil {
+	if err := json.Unmarshal(body.Bytes(), &data); err != nil {
+		if statusCode == 400 || statusCode <= 299 {
+			e = errors.New("missing valid response body")
+		}
 		return
 	} else if result, ok = data["json"]; !ok {
 		e = errors.New("no result string")

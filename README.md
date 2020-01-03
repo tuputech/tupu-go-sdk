@@ -1,10 +1,13 @@
 # TUPU GO SDK
 
-Golang SDK for TUPU visual recognition service (v1.4)
+Golang SDK for TUPU visual recognition service (v1.6.1)
 ######  
 <https://www.tuputech.com>
 
 ## Changelogs
+#### v1.6.1
+- fix returning data when it's not JSON data
+
 #### v1.6
 - fix to return failure response status code
 
