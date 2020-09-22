@@ -1,25 +1,25 @@
 package speechsync
 
 import (
-	baseReg "github.com/tuputech/tupu-go-sdk/base-recognition"
+	basercn "github.com/tuputech/tupu-go-sdk/base-recognition"
 )
 
 const (
-	SPEECH_API_URL = "http://api.open.tuputech.com/v3/recognition/speech"
+	SPEECH_API_URL = "http://api.open.tuputech.com/v3/recognition/speech/"
 )
 
 // SpeechHandler is a client-side helper to access TUPU speech recognition service
 type SpeechHandler struct {
-	hdler baseReg.Handler
+	hdler basercn.Handler
 }
 
 // NewSpeechHandler is an initializer for a SpeechHandler
 func NewSpeechHandler(privateKeyPath string) (*SpeechHandler, error) {
 	var err error
 	spHdler := new(SpeechHandler)
-	hdler := new(baseReg.Handler)
+	hdler := new(basercn.Handler)
 
-	if hdler, err = baseReg.NewHandlerWithURL(privateKeyPath, SPEECH_API_URL); err != nil {
+	if hdler, err = basercn.NewHandlerWithURL(privateKeyPath, SPEECH_API_URL); err != nil {
 		spHdler.hdler = *hdler
 		return spHdler, err
 	}
@@ -31,9 +31,9 @@ func NewSpeechHandler(privateKeyPath string) (*SpeechHandler, error) {
 func NewSpeechHandlerWithURL(privateKeyPath, url string) (*SpeechHandler, error) {
 	var err error
 	spHdler := new(SpeechHandler)
-	hdler := new(baseReg.Handler)
+	hdler := new(basercn.Handler)
 
-	if hdler, err = baseReg.NewHandlerWithURL(privateKeyPath, url); err != nil {
+	if hdler, err = basercn.NewHandlerWithURL(privateKeyPath, url); err != nil {
 		spHdler.hdler = *hdler
 		return spHdler, err
 	}
@@ -45,7 +45,7 @@ func NewSpeechHandlerWithURL(privateKeyPath, url string) (*SpeechHandler, error)
 // Perform is the major method for initiating a speech recognition request
 func (spHdler *SpeechHandler) Perform(secretID string, spSlice []*Speech) (string, int, error) {
 
-	dataInfoSlice := make([]*baseReg.DataInfo, 0)
+	dataInfoSlice := make([]*basercn.DataInfo, 0)
 	for i := 0; i < len(spSlice); i++ {
 		dataInfoSlice = append(dataInfoSlice, &spSlice[i].dataInfo)
 	}

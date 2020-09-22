@@ -157,17 +157,17 @@ func (h *Handler) request(requestParam string, url *string, params *map[string]s
 	}
 
 	// write binary data to request body
-	for i, item := range dataInfoSlice {
-		if e = addDataInfoField(requestParam, writer, item, i); e == nil {
+	for index, dataInfoItem := range dataInfoSlice {
+		if e = addDataInfoField(requestParam, writer, dataInfoItem, index); e == nil {
 			// with other message
 			if otherMsg != nil {
 				for kStr, vSlice := range otherMsg {
-					var vSliceItemLen int
+					var vSliceLen int
 					if vSlice != nil {
-						vSliceItemLen = len(vSlice)
+						vSliceLen = len(vSlice)
 					}
-					if vSliceItemLen > 0 && i < vSliceItemLen {
-						_ = writer.WriteField(kStr, vSlice[i])
+					if vSliceLen > 0 && index < vSliceLen {
+						_ = writer.WriteField(kStr, vSlice[index])
 					}
 				}
 			}
@@ -219,7 +219,7 @@ func addDataInfoField(requestParams string, writer *multipart.Writer, item *Data
 			_, e = io.Copy(part, item.buf)
 		}
 	default:
-		return fmt.Errorf("invalid image resource at index [%v]", idx)
+		return fmt.Errorf("invalid data resource at index [%v]", idx)
 	}
 	return
 }

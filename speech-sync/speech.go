@@ -2,40 +2,40 @@
 package speechsync
 
 import (
-	baseReg "github.com/tuputech/tupu-go-sdk/base-recognition"
+	basercn "github.com/tuputech/tupu-go-sdk/base-recognition"
 )
 
 // Speech extends recognition.DataInfo to descripton speech file
 type Speech struct {
-	dataInfo baseReg.DataInfo
+	dataInfo basercn.DataInfo
 }
 
 // NewRemoteSpeech is an initializer for create Speech resource with url
 func NewRemoteSpeech(url string) *Speech {
-	dataInfo := new(baseReg.DataInfo)
+	dataInfo := new(basercn.DataInfo)
 	speech := new(Speech)
 
-	dataInfo = baseReg.NewRemoteDataInfo(url)
+	dataInfo = basercn.NewRemoteDataInfo(url)
 	speech.dataInfo = *dataInfo
 	return speech
 }
 
 // NewLocalSpeech is an initializer for create Speech resource with local file path
 func NewLocalSpeech(path string) *Speech {
-	dataInfo := new(baseReg.DataInfo)
+	dataInfo := new(basercn.DataInfo)
 	speech := new(Speech)
 
-	dataInfo = baseReg.NewLocalDataInfo(path)
+	dataInfo = basercn.NewLocalDataInfo(path)
 	speech.dataInfo = *dataInfo
 	return speech
 }
 
 // NewBinarySpeech is an initializer for create Speech resource with binary content
 func NewBinarySpeech(buf []byte, fileName string) *Speech {
-	dataInfo := new(baseReg.DataInfo)
+	dataInfo := new(basercn.DataInfo)
 	speech := new(Speech)
 
-	dataInfo = baseReg.NewBinaryDataInfo(buf, fileName)
+	dataInfo = basercn.NewBinaryDataInfo(buf, fileName)
 	speech.dataInfo = *dataInfo
 	return speech
 }
