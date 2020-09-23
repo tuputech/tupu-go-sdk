@@ -86,6 +86,13 @@ func (h *Handler) RecognizeWithPath(requestParam, secretID string, imagePaths []
 
 // Recognize is the major method for initiating a recognition request
 func (h *Handler) Recognize(requestParam, secretID string, dataInfoSlice []*DataInfo, otherMsg map[string][]string) (result string, statusCode int, e error) {
+	// Only 10 data can be carried in one request
+	if len(dataInfoSlice) > 10 {
+		result = ""
+		statusCode = 400
+		e = fmt.Errorf("[Params ERROR]: Only 10 data can be carried in one request")
+	}
+
 	t := time.Now()
 	timestamp := strconv.FormatInt(t.Unix(), 10)
 	r := rand.New(rand.NewSource(t.UnixNano()))
@@ -196,6 +203,9 @@ func (h *Handler) request(requestParam string, url *string, params *map[string]s
 }
 
 func addDataInfoField(requestParams string, writer *multipart.Writer, item *DataInfo, idx int) (e error) {
+	if writer == nil || item == nil {
+		return fmt.Errorf("[Params ERROR]: *io.writer or *dataInfo is null")
+	}
 	switch {
 	case len(item.url) > 0:
 		_ = writer.WriteField(requestParams, item.url)
