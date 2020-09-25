@@ -1,4 +1,4 @@
-package recognition
+package generalapi
 
 import (
 	"encoding/json"
@@ -28,6 +28,11 @@ func parseTaskVal(val interface{}) (v map[string]interface{}, e error) {
 
 // ParseResult is a helper to parse json string and create a Result struct
 func ParseResult(s string) *Result {
+
+	if len(s) == 0 {
+		return nil
+	}
+
 	var data map[string]interface{}
 	if json.Unmarshal([]byte(s), &data) != nil {
 		return nil

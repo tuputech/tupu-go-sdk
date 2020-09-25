@@ -5,8 +5,7 @@ import (
 	"io/ioutil"
 	"time"
 
-	baseRcn "github.com/tuputech/tupu-go-sdk/base-recognition"
-	spch "github.com/tuputech/tupu-go-sdk/speech-sync"
+	spch "github.com/tuputech/tupu-go-sdk/recognition-api/speech/shortsync"
 )
 
 func main() {
@@ -14,7 +13,8 @@ func main() {
 	// step1. get your secretID
 	secretID := "5f042c1f1bac63001e897f27"
 	// step2. create speech handler
-	speechHandler, err := spch.NewSpeechHandler("/Users/mac/hcz/go_project/tupu_rsa_key/rsa_private_key.pem")
+	speechHandler, err := spch.NewSpeechHandlerWithURL("/Users/mac/hcz/go_project/tupu_rsa_key/rsa_private_key.pem",
+		"http://172.26.2.63:8991/v3/recognition")
 	if err != nil {
 		fmt.Println("-------- ERROR ----------")
 		return
@@ -25,10 +25,10 @@ func main() {
 	testSpeechAPIWithURL(secretID, speechHandler)
 
 	// test demo2
-	testSpeechAPIWithPath(secretID, speechHandler)
+	//testSpeechAPIWithPath(secretID, speechHandler)
 
 	// test demo3
-	testSpeechAPIWithBinary(secretID, speechHandler)
+	//testSpeechAPIWithBinary(secretID, speechHandler)
 }
 
 func testSpeechAPIWithBinary(secretID string, speechHandler *spch.SpeechHandler) {
@@ -71,7 +71,7 @@ func printResult(result string, statusCode int, err error) {
 	fmt.Println("-------- v1.0 --------")
 	fmt.Printf("Status-Code: %v\n-----\n", statusCode)
 
-	r := baseRcn.ParseResult(result)
+	r := spch.ParseResult(result)
 	fmt.Printf("- Code: %v %v\n- Time: %v\n", r.Code, r.Message, time.Unix(r.Timestamp, 0))
 	for k, v := range r.Tasks {
 		fmt.Printf("- Task: [%v]\n%v\n", k, v)

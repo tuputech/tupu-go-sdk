@@ -1,5 +1,5 @@
-// Package base provide General functions of tupu content recognition interface
-package base
+// Package generalapi provide General functions of TUPU content recognition interface
+package generalapi
 
 import (
 	"bytes"
@@ -25,8 +25,7 @@ var (
 
 const (
 	ROOT_API_URL = "http://api.open.tuputech.com/v3/recognition/"
-	//ROOT_API_URL = "http://172.26.2.63:8991/v3/recognition/"
-	USER_AGENT = "tupu-client/1.0"
+	USER_AGENT   = "tupu-client/1.0"
 )
 
 // Handler is a client-side helper to access TUPU recognition service
@@ -42,6 +41,11 @@ type Handler struct {
 
 // NewHandler is an initializer for a Handler
 func NewHandler(privateKeyPath string) (*Handler, error) {
+	// verify legatity params
+	if StringIsEmpty(privateKeyPath) {
+		return nil, fmt.Errorf("[Params ERROR]: caller name: %s", GetCallerFuncName())
+	}
+
 	h := new(Handler)
 	h.apiURL = ROOT_API_URL
 	h.UserAgent = USER_AGENT
@@ -59,6 +63,11 @@ func NewHandler(privateKeyPath string) (*Handler, error) {
 
 // NewHandlerWithURL is also an initializer for a Handler
 func NewHandlerWithURL(privateKeyPath, url string) (h *Handler, e error) {
+	// verify legatity params
+	if StringIsEmpty(privateKeyPath, url) {
+		return nil, fmt.Errorf("[Params ERROR]: caller name: %s", GetCallerFuncName())
+	}
+
 	if h, e = NewHandler(privateKeyPath); e != nil {
 		return
 	}
@@ -68,6 +77,11 @@ func NewHandlerWithURL(privateKeyPath, url string) (h *Handler, e error) {
 
 // RecognizeWithURL is a shortcut for initiating a recognition request with URLs of dataInfoSlice
 func (h *Handler) RecognizeWithURL(requestParam, secretID string, URLs []string, otherMsg map[string][]string) (result string, statusCode int, e error) {
+	// verify legatity params
+	if StringIsEmpty(requestParam, secretID) || PtrIsNil(URLs) {
+		return "", 400, fmt.Errorf("[Params ERROR]: caller name: %s", GetCallerFuncName())
+	}
+
 	var dataInfoSlice []*DataInfo
 	for _, val := range URLs {
 		dataInfoSlice = append(dataInfoSlice, NewRemoteDataInfo(val))
@@ -77,6 +91,11 @@ func (h *Handler) RecognizeWithURL(requestParam, secretID string, URLs []string,
 
 // RecognizeWithPath is a shortcut for initiating a recognition request with paths of dataInfoSlice
 func (h *Handler) RecognizeWithPath(requestParam, secretID string, imagePaths []string, otherMsg map[string][]string) (result string, statusCode int, e error) {
+	// verify legatity params
+	if StringIsEmpty(requestParam, secretID) || PtrIsNil(imagePaths) {
+		return "", 400, fmt.Errorf("[Params ERROR]: caller name: %s", GetCallerFuncName())
+	}
+
 	var dataInfoSlice []*DataInfo
 	for _, val := range imagePaths {
 		dataInfoSlice = append(dataInfoSlice, NewLocalDataInfo(val))
@@ -84,32 +103,69 @@ func (h *Handler) RecognizeWithPath(requestParam, secretID string, imagePaths []
 	return h.Recognize(requestParam, secretID, dataInfoSlice, otherMsg)
 }
 
+// RecognizeWithJSON is one of major method to access recognition api
+func (h *Handler) RecognizeWithJSON(jsonStr, secretID string) (result string, statusCode int, err error) {
+
+	// step1. Invalid parameter check
+	if StringIsEmpty(jsonStr, secretID) {
+		err = fmt.Errorf("[Params ERROR]")
+		return
+	}
+
+	var (
+		params    map[string]string
+		paramsStr string
+		url       = h.apiURL + secretID
+		req       *http.Request
+		resp      *http.Response
+	)
+
+	// step2. get timestamp, nonce, signature
+	if params, err = h.GetGeneralParams(secretID); err != nil {
+		statusCode = 400
+		return
+	}
+
+	// step3. serialize to JSON string
+	tmpStr, _ := json.Marshal(params)
+	// init and format request params to string
+	paramsStr = string(tmpStr[1 : len(tmpStr)-1])
+	jsonStr = fmt.Sprintf("{%s, %s}", jsonStr, paramsStr)
+
+	// step4. create Request object
+	if req, err = http.NewRequest("POST", url, bytes.NewBuffer([]byte(jsonStr))); err != nil {
+		return
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("User-Agent", h.UserAgent)
+	req.Header.Set("Timeout", "30")
+
+	// step5. access speech recognition API by HTTP
+	if resp, err = h.Client.Do(req); err != nil {
+		//log.Fatal(e)
+		return
+	}
+	// step6. serialize to result string
+	if result, statusCode, err = h.processResp(resp); err != nil {
+		//log.Fatal(e)
+		return
+	}
+	return
+}
+
 // Recognize is the major method for initiating a recognition request
 func (h *Handler) Recognize(requestParam, secretID string, dataInfoSlice []*DataInfo, otherMsg map[string][]string) (result string, statusCode int, e error) {
 	// Only 10 data can be carried in one request
-	if len(dataInfoSlice) > 10 {
+	if len(dataInfoSlice) > 10 || StringIsEmpty(requestParam, secretID) {
 		result = ""
 		statusCode = 400
 		e = fmt.Errorf("[Params ERROR]: Only 10 data can be carried in one request")
 	}
 
-	t := time.Now()
-	timestamp := strconv.FormatInt(t.Unix(), 10)
-	r := rand.New(rand.NewSource(t.UnixNano()))
-	nonce := strconv.FormatInt(int64(r.Uint32()), 10)
-	forSign := strings.Join([]string{secretID, timestamp, nonce}, ",")
-	var signature string
-	if signature, e = h.sign([]byte(forSign)); e != nil {
+	var params map[string]string
+	if params, e = h.GetGeneralParams(secretID); e != nil {
+		statusCode = 400
 		return
-	}
-
-	params := map[string]string{
-		"timestamp": timestamp,
-		"nonce":     nonce,
-		"signature": signature,
-	}
-	if len(h.UID) > 0 {
-		params["uid"] = h.UID
 	}
 
 	var (
@@ -132,6 +188,35 @@ func (h *Handler) Recognize(requestParam, secretID string, dataInfoSlice []*Data
 	}
 	//fmt.Println(resp.Header)
 	return
+}
+
+// GetGeneralParams is general function for getting TUPU base params
+func (h *Handler) GetGeneralParams(secretID string) (map[string]string, error) {
+	if StringIsEmpty(secretID) {
+		return nil, fmt.Errorf("[Parmas ERROR]: caller function name %s", GetCallerFuncName())
+	}
+	var (
+		signature string
+		e         error
+	)
+	t := time.Now()
+	timestamp := strconv.FormatInt(t.Unix(), 10)
+	r := rand.New(rand.NewSource(t.UnixNano()))
+	nonce := strconv.FormatInt(int64(r.Uint32()), 10)
+	forSign := strings.Join([]string{secretID, timestamp, nonce}, ",")
+	if signature, e = h.sign([]byte(forSign)); e != nil {
+		return nil, e
+	}
+
+	params := map[string]string{
+		"timestamp": timestamp,
+		"nonce":     nonce,
+		"signature": signature,
+	}
+	if len(h.UID) > 0 {
+		params["uid"] = h.UID
+	}
+	return params, nil
 }
 
 func (h *Handler) sign(message []byte) (string, error) {
@@ -192,13 +277,6 @@ func (h *Handler) request(requestParam string, url *string, params *map[string]s
 	req.Header.Set("User-Agent", h.UserAgent)
 	req.Header.Set("Timeout", "30")
 
-	// fmt.Println("########## debug #########")
-	// fmt.Printf("*********** %v **************\n", req.Body)
-	// //fmt.Println(writer)
-	// fmt.Println("########## debug #########")
-
-	// fmt.Println(req.Header)
-	// fmt.Println(body.String())
 	return
 }
 

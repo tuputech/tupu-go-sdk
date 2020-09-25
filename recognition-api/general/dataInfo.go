@@ -1,4 +1,4 @@
-package base
+package generalapi
 
 import "bytes"
 
@@ -12,6 +12,10 @@ type DataInfo struct {
 
 // NewRemoteDataInfo is an initializer for create data resource with a url
 func NewRemoteDataInfo(url string) *DataInfo {
+	// verify legatity params
+	if StringIsEmpty(url) {
+		return nil
+	}
 	dataInfo := new(DataInfo)
 	dataInfo.url = url
 	return dataInfo
@@ -19,6 +23,10 @@ func NewRemoteDataInfo(url string) *DataInfo {
 
 // NewLocalDataInfo is an initializer for create data resource with a file path
 func NewLocalDataInfo(path string) *DataInfo {
+	// verify legatity params
+	if StringIsEmpty(path) {
+		return nil
+	}
 	dataInfo := new(DataInfo)
 	dataInfo.path = path
 	return dataInfo
@@ -26,6 +34,10 @@ func NewLocalDataInfo(path string) *DataInfo {
 
 // NewBinaryDataInfo is an initializer for create data resource with binary content
 func NewBinaryDataInfo(buf []byte, filename string) *DataInfo {
+	// verify legatity params
+	if StringIsEmpty(filename) || PtrIsNil(buf) {
+		return nil
+	}
 	dataInfo := new(DataInfo)
 	dataInfo.buf = bytes.NewBuffer(buf)
 	dataInfo.filename = filename

@@ -17,14 +17,10 @@ import (
 	"time"
 )
 
-
-
 var (
-	ErrBadGateway = errors.New("502 Bad Gateway")
+	ErrBadGateway         = errors.New("502 Bad Gateway")
 	ErrServiceUnavailable = errors.New("503 Service Unavailable")
 )
-
-
 
 // Handler is a client-side helper to access TUPU visual recognition service
 type Handler struct {
