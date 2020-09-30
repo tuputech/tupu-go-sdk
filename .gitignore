@@ -20,7 +20,10 @@ recognition/speech/shortsync/resultstruct/go.sum
 recognition/speech/shortsync/resultstruct/go.mod
 
 lib/model/go.mod
+lib/model/go.sum
 lib/controller/go.mod
 lib/controller/go.sum
 lib/errorlib/go.mod
+lib/errorlib/go.sum
 lib/tools/go.mod
+lib/tools/go.sum
