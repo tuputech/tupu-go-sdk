@@ -1,4 +1,4 @@
-package generalapi
+package tools
 
 import (
 	"crypto"

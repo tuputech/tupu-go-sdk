@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 	"time"
 
-	spch "github.com/tuputech/tupu-go-sdk/recognition-api/speech/shortsync"
+	spch "github.com/tuputech/tupu-go-sdk/recognition/speech/shortsync"
 )
 
 func main() {
@@ -13,8 +13,8 @@ func main() {
 	// step1. get your secretID
 	secretID := "5f042c1f1bac63001e897f27"
 	// step2. create speech handler
-	speechHandler, err := spch.NewSpeechHandlerWithURL("/Users/mac/hcz/go_project/tupu_rsa_key/rsa_private_key.pem",
-		"http://172.26.2.63:8991/v3/recognition")
+	speechHandler, err := spch.NewShortSpeechHandler("/Users/mac/hcz/go_project/tupu_rsa_key/rsa_private_key.pem",
+		"http://172.26.2.63:8991/v3/recognition/speech/")
 	if err != nil {
 		fmt.Println("-------- ERROR ----------")
 		return
@@ -31,36 +31,36 @@ func main() {
 	//testSpeechAPIWithBinary(secretID, speechHandler)
 }
 
-func testSpeechAPIWithBinary(secretID string, speechHandler *spch.SpeechHandler) {
+func testSpeechAPIWithBinary(secretID string, speechHandler *spch.ShortSpeechHandler) {
 	//Using local file or binary data
 	fileBytes, e2 := ioutil.ReadFile("/Users/mac/Music/vulgar.wmv")
 	if e2 != nil {
 		fmt.Printf("Could not load voice: %v", e2)
 		return
 	}
-	speechBinary := spch.NewBinarySpeech(fileBytes, "1.wmv")
-	defer speechBinary.ClearBuffer()
-	speechSlice := []*spch.Speech{spch.NewLocalSpeech("/Users/mac/Music/vulgar.wmv"), speechBinary}
+	speechSlice := map[string][]byte{
+		"1.wmv": fileBytes,
+	}
 
-	printResult(speechHandler.Perform(secretID, speechSlice))
+	printResult(speechHandler.PerformWithBinary(secretID, speechSlice, 0))
 }
 
-func testSpeechAPIWithPath(secretID string, speechHandler *spch.SpeechHandler) {
+func testSpeechAPIWithPath(secretID string, speechHandler *spch.ShortSpeechHandler) {
 	// step1. get speech file path
 	speechPaths := []string{
 		"/Users/mac/Music/vulgar.wmv",
 	}
 
 	// step2. get result of speech recognition API
-	printResult(speechHandler.PerformWithPath(secretID, speechPaths))
+	printResult(speechHandler.PerformWithPath(secretID, speechPaths, 0))
 }
 
-func testSpeechAPIWithURL(secretID string, speechHandler *spch.SpeechHandler) {
+func testSpeechAPIWithURL(secretID string, speechHandler *spch.ShortSpeechHandler) {
 	// step1. get speech file url
 	speechURLs := []string{
 		"https://www.tuputech.com/original/world/data-c40/yrw/api_test_data/vulgar.wmv",
 	}
-	printResult(speechHandler.PerformWithURL(secretID, speechURLs))
+	printResult(speechHandler.PerformWithURL(secretID, speechURLs, 0))
 }
 
 func printResult(result string, statusCode int, err error) {

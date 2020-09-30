@@ -1,5 +1,5 @@
-// Package generalapi provide General functions of TUPU content recognition interface
-package generalapi
+// Package controller provide General functions of TUPU content recognition interface
+package controller
 
 import (
 	"bytes"
@@ -16,99 +16,82 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	tupuerrorlib "github.com/tuputech/tupu-go-sdk/lib/errorlib"
+	tupumodel "github.com/tuputech/tupu-go-sdk/lib/model"
+	tuputools "github.com/tuputech/tupu-go-sdk/lib/tools"
 )
 
 var (
-	ErrBadGateway         = errors.New("502 Bad Gateway")
+	// ErrBadGateway is the error of request
+	ErrBadGateway = errors.New("502 Bad Gateway")
+	// ErrServiceUnavailable is the error of request
 	ErrServiceUnavailable = errors.New("503 Service Unavailable")
 )
 
 const (
-	ROOT_API_URL = "http://api.open.tuputech.com/v3/recognition/"
-	USER_AGENT   = "tupu-client/1.0"
+	// RootAPIURL is default entry of the TUPU recognition API
+	RootAPIURL = "http://api.open.tuputech.com/v3/recognition/"
+	// DefaultUserAgent is default value of the request Header: User-Agent
+	DefaultUserAgent = "tupu-client/1.0"
+	// DefaultContentType is default value of the request Header: Content-Type
+	DefaultContentType = "multipart/form-data"
 )
 
 // Handler is a client-side helper to access TUPU recognition service
 type Handler struct {
 	apiURL   string
-	signer   Signer
-	verifier Verifier
-	//
-	UID       string //for sub-user statistics and billing
+	signer   tuputools.Signer
+	verifier tuputools.Verifier
+	//for sub-user statistics and billing
+	UID string
+	// UserAgent is the request Header: User-Agent
 	UserAgent string
-	Client    *http.Client
-}
-
-// NewHandler is an initializer for a Handler
-func NewHandler(privateKeyPath string) (*Handler, error) {
-	// verify legatity params
-	if StringIsEmpty(privateKeyPath) {
-		return nil, fmt.Errorf("[Params ERROR]: caller name: %s", GetCallerFuncName())
-	}
-
-	h := new(Handler)
-	h.apiURL = ROOT_API_URL
-	h.UserAgent = USER_AGENT
-	h.Client = &http.Client{}
-
-	var e error
-	if h.verifier, e = LoadTupuPublicKey(); e != nil {
-		return nil, e
-	}
-	if h.signer, e = LoadPrivateKey(privateKeyPath); e != nil {
-		return nil, e
-	}
-	return h, nil
+	// ContentType is the request Header: Content-Type
+	ContentType string
+	// Timeout is the request Header: Timeout
+	Timeout string
+	// Client is the *http.Client object
+	Client *http.Client
 }
 
 // NewHandlerWithURL is also an initializer for a Handler
 func NewHandlerWithURL(privateKeyPath, url string) (h *Handler, e error) {
 	// verify legatity params
-	if StringIsEmpty(privateKeyPath, url) {
-		return nil, fmt.Errorf("[Params ERROR]: caller name: %s", GetCallerFuncName())
+	if tupuerrorlib.StringIsEmpty(privateKeyPath, url) {
+		return nil, fmt.Errorf("%s, %s", tupuerrorlib.ErrorParamsIsEmpty, tupuerrorlib.GetCallerFuncName())
 	}
+	h = new(Handler)
 
-	if h, e = NewHandler(privateKeyPath); e != nil {
-		return
-	}
+	// init other default proprety
+	h.initHandler()
+	h.apiURL = RootAPIURL
 	h.apiURL = url
+
+	if h.verifier, e = tuputools.LoadTupuPublicKey(); e != nil {
+		return nil, e
+	}
+	if h.signer, e = tuputools.LoadPrivateKey(privateKeyPath); e != nil {
+		return nil, e
+	}
 	return h, nil
 }
 
-// RecognizeWithURL is a shortcut for initiating a recognition request with URLs of dataInfoSlice
-func (h *Handler) RecognizeWithURL(requestParam, secretID string, URLs []string, otherMsg map[string][]string) (result string, statusCode int, e error) {
-	// verify legatity params
-	if StringIsEmpty(requestParam, secretID) || PtrIsNil(URLs) {
-		return "", 400, fmt.Errorf("[Params ERROR]: caller name: %s", GetCallerFuncName())
-	}
-
-	var dataInfoSlice []*DataInfo
-	for _, val := range URLs {
-		dataInfoSlice = append(dataInfoSlice, NewRemoteDataInfo(val))
-	}
-	return h.Recognize(requestParam, secretID, dataInfoSlice, otherMsg)
-}
-
-// RecognizeWithPath is a shortcut for initiating a recognition request with paths of dataInfoSlice
-func (h *Handler) RecognizeWithPath(requestParam, secretID string, imagePaths []string, otherMsg map[string][]string) (result string, statusCode int, e error) {
-	// verify legatity params
-	if StringIsEmpty(requestParam, secretID) || PtrIsNil(imagePaths) {
-		return "", 400, fmt.Errorf("[Params ERROR]: caller name: %s", GetCallerFuncName())
-	}
-
-	var dataInfoSlice []*DataInfo
-	for _, val := range imagePaths {
-		dataInfoSlice = append(dataInfoSlice, NewLocalDataInfo(val))
-	}
-	return h.Recognize(requestParam, secretID, dataInfoSlice, otherMsg)
+func (h *Handler) initHandler() {
+	h.UserAgent = DefaultUserAgent
+	h.ContentType = DefaultContentType
+	h.Timeout = "30"
+	h.Client = &http.Client{}
 }
 
 // RecognizeWithJSON is one of major method to access recognition api
-func (h *Handler) RecognizeWithJSON(jsonStr, secretID string) (result string, statusCode int, err error) {
+func (h *Handler) RecognizeWithJSON(jsonStr, secretID, timeOut string) (result string, statusCode int, err error) {
 
 	// step1. Invalid parameter check
-	if StringIsEmpty(jsonStr, secretID) {
-		err = fmt.Errorf("[Params ERROR]")
+	if tupuerrorlib.StringIsEmpty(jsonStr, secretID) {
+		result = ""
+		statusCode = 400
+		err = fmt.Errorf("%s, %s", tupuerrorlib.ErrorParamsIsEmpty, tupuerrorlib.GetCallerFuncName())
 		return
 	}
 
@@ -138,7 +121,7 @@ func (h *Handler) RecognizeWithJSON(jsonStr, secretID string) (result string, st
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("User-Agent", h.UserAgent)
-	req.Header.Set("Timeout", "30")
+	req.Header.Set("Timeout", timeOut)
 
 	// step5. access speech recognition API by HTTP
 	if resp, err = h.Client.Do(req); err != nil {
@@ -154,34 +137,43 @@ func (h *Handler) RecognizeWithJSON(jsonStr, secretID string) (result string, st
 }
 
 // Recognize is the major method for initiating a recognition request
-func (h *Handler) Recognize(requestParam, secretID string, dataInfoSlice []*DataInfo, otherMsg map[string][]string) (result string, statusCode int, e error) {
+func (h *Handler) Recognize(secretID string, dataInfoSlice []*tupumodel.DataInfo) (result string, statusCode int, e error) {
 	// Only 10 data can be carried in one request
-	if len(dataInfoSlice) > 10 || StringIsEmpty(requestParam, secretID) {
+	if len(dataInfoSlice) > 10 || tupuerrorlib.StringIsEmpty(secretID) {
 		result = ""
 		statusCode = 400
-		e = fmt.Errorf("[Params ERROR]: Only 10 data can be carried in one request")
+		e = fmt.Errorf("%s, %s", tupuerrorlib.ErrorParamsIsEmpty, tupuerrorlib.GetCallerFuncName())
 	}
 
-	var params map[string]string
+	var (
+		url    = h.apiURL + secretID
+		req    *http.Request
+		resp   *http.Response
+		params map[string]string
+	)
+
 	if params, e = h.GetGeneralParams(secretID); e != nil {
 		statusCode = 400
 		return
 	}
 
-	var (
-		url  = h.apiURL + secretID
-		req  *http.Request
-		resp *http.Response
-	)
-	if req, e = h.request(requestParam, &url, &params, dataInfoSlice, otherMsg); e != nil {
+	if req, e = h.request(&url, &params, dataInfoSlice); e != nil {
 		//log.Fatal(e)
 		return
 	}
+
+	fmt.Println("---------------------------------------------------")
+	fmt.Println(req)
+	fmt.Println("---------------------------------------------------")
 
 	if resp, e = h.Client.Do(req); e != nil {
 		//log.Fatal(e)
 		return
 	}
+
+	fmt.Println("---------------------------------------------------")
+	fmt.Println(resp)
+	fmt.Println("---------------------------------------------------")
 	if result, statusCode, e = h.processResp(resp); e != nil {
 		//log.Fatal(e)
 		return
@@ -192,27 +184,29 @@ func (h *Handler) Recognize(requestParam, secretID string, dataInfoSlice []*Data
 
 // GetGeneralParams is general function for getting TUPU base params
 func (h *Handler) GetGeneralParams(secretID string) (map[string]string, error) {
-	if StringIsEmpty(secretID) {
-		return nil, fmt.Errorf("[Parmas ERROR]: caller function name %s", GetCallerFuncName())
+	if tupuerrorlib.StringIsEmpty(secretID) {
+		return nil, fmt.Errorf("%s, %s", tupuerrorlib.ErrorParamsIsEmpty, tupuerrorlib.GetCallerFuncName())
 	}
+
 	var (
 		signature string
 		e         error
+		t         = time.Now()
+		timestamp = strconv.FormatInt(t.Unix(), 10)
+		r         = rand.New(rand.NewSource(t.UnixNano()))
+		nonce     = strconv.FormatInt(int64(r.Uint32()), 10)
+		forSign   = strings.Join([]string{secretID, timestamp, nonce}, ",")
+		params    = map[string]string{
+			"timestamp": timestamp,
+			"nonce":     nonce,
+			"signature": signature,
+		}
 	)
-	t := time.Now()
-	timestamp := strconv.FormatInt(t.Unix(), 10)
-	r := rand.New(rand.NewSource(t.UnixNano()))
-	nonce := strconv.FormatInt(int64(r.Uint32()), 10)
-	forSign := strings.Join([]string{secretID, timestamp, nonce}, ",")
+
 	if signature, e = h.sign([]byte(forSign)); e != nil {
 		return nil, e
 	}
 
-	params := map[string]string{
-		"timestamp": timestamp,
-		"nonce":     nonce,
-		"signature": signature,
-	}
 	if len(h.UID) > 0 {
 		params["uid"] = h.UID
 	}
@@ -240,9 +234,16 @@ func (h *Handler) verify(message []byte, sig string) error {
 	return nil
 }
 
-func (h *Handler) request(requestParam string, url *string, params *map[string]string, dataInfoSlice []*DataInfo, otherMsg map[string][]string) (req *http.Request, e error) {
-	body := &bytes.Buffer{}
-	writer := multipart.NewWriter(body)
+func (h *Handler) request(url *string, params *map[string]string, dataInfoSlice []*tupumodel.DataInfo) (req *http.Request, e error) {
+	// verify legatity params
+	if tupuerrorlib.PtrIsNil(url, params, dataInfoSlice) {
+		return nil, fmt.Errorf("%s, %s", tupuerrorlib.ErrorParamsIsEmpty, tupuerrorlib.GetCallerFuncName)
+	}
+
+	var (
+		body   = &bytes.Buffer{}
+		writer = multipart.NewWriter(body)
+	)
 
 	for key, val := range *params {
 		_ = writer.WriteField(key, val)
@@ -250,17 +251,11 @@ func (h *Handler) request(requestParam string, url *string, params *map[string]s
 
 	// write binary data to request body
 	for index, dataInfoItem := range dataInfoSlice {
-		if e = addDataInfoField(requestParam, writer, dataInfoItem, index); e == nil {
+		if e = addDataInfoField(writer, dataInfoItem, index); e == nil {
 			// with other message
-			if otherMsg != nil {
-				for kStr, vSlice := range otherMsg {
-					var vSliceLen int
-					if vSlice != nil {
-						vSliceLen = len(vSlice)
-					}
-					if vSliceLen > 0 && index < vSliceLen {
-						_ = writer.WriteField(kStr, vSlice[index])
-					}
+			if dataInfoItem.OtherMsg != nil {
+				for kStr, v := range dataInfoItem.OtherMsg {
+					_ = writer.WriteField(kStr, v)
 				}
 			}
 		}
@@ -270,41 +265,44 @@ func (h *Handler) request(requestParam string, url *string, params *map[string]s
 		return
 	}
 
+	// construct request object
 	if req, e = http.NewRequest("POST", *url, body); e != nil {
 		return
 	}
 	req.Header.Set("Content-Type", writer.FormDataContentType())
 	req.Header.Set("User-Agent", h.UserAgent)
-	req.Header.Set("Timeout", "30")
+	req.Header.Set("Timeout", h.Timeout)
 
 	return
 }
 
-func addDataInfoField(requestParams string, writer *multipart.Writer, item *DataInfo, idx int) (e error) {
-	if writer == nil || item == nil {
+func addDataInfoField(writer *multipart.Writer, dataInfo *tupumodel.DataInfo, idx int) (e error) {
+	// verify legatity params
+	if tupuerrorlib.PtrIsNil(writer, dataInfo) {
 		return fmt.Errorf("[Params ERROR]: *io.writer or *dataInfo is null")
 	}
+
 	switch {
-	case len(item.url) > 0:
-		_ = writer.WriteField(requestParams, item.url)
-	case len(item.path) > 0:
+	case len(dataInfo.RemoteInfo) > 0:
+		_ = writer.WriteField(dataInfo.FileType, dataInfo.RemoteInfo)
+	case len(dataInfo.Path) > 0:
 		var (
 			file *os.File
 			part io.Writer
 		)
-		if file, e = os.Open(item.path); e != nil {
+		if file, e = os.Open(dataInfo.Path); e != nil {
 			return
 		}
-		part, e = writer.CreateFormFile(requestParams, filepath.Base(item.path))
+		part, e = writer.CreateFormFile(dataInfo.FileType, filepath.Base(dataInfo.Path))
 		if e == nil {
 			_, e = io.Copy(part, file)
 		}
 		file.Close()
-	case item.buf != nil && item.buf.Len() > 0 && len(item.filename) > 0:
+	case dataInfo.Buf != nil && dataInfo.Buf.Len() > 0 && len(dataInfo.FileName) > 0:
 		var part io.Writer
-		part, e = writer.CreateFormFile(requestParams, item.filename)
+		part, e = writer.CreateFormFile(dataInfo.FileType, dataInfo.FileName)
 		if e == nil {
-			_, e = io.Copy(part, item.buf)
+			_, e = io.Copy(part, dataInfo.Buf)
 		}
 	default:
 		return fmt.Errorf("invalid data resource at index [%v]", idx)

@@ -2,8 +2,8 @@ package longasync
 
 // LongSpeech is a structure that encapsulates long speech messages
 type LongSpeech struct {
-	// Url represents the address of the long voice, can't be empty
-	URL string `json:"url"`
+	// FileRemoteURL represents the address of the long voice, can't be empty
+	FileRemoteURL string `json:"url"`
 	// CallbackUrl represents the address of the callback result, cant' be empty
 	CallbackURL string `json:"callbackUrl"`
 	// CallbackRule represents the Rule of the callback, empty is using default rule, `all` is callback all result

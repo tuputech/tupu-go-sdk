@@ -4,6 +4,20 @@
 
 test/img/
 
-test/rsa_private_key.pem
+example/rsa_private_key.pem
 
 test/test_local.go
+
+example/go.mod
+example/go.sum
+
+recognition/go.mod
+recognition/go.sum
+
+recognition/speech/longasync/go.sum
+recognition/speech/shortsync/go.sum
+
+lib/model/go.mod
+lib/controller/go.mod
+lib/errorlib/go.mod
+lib/tools/go.mod

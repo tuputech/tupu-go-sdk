@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	longSpch "github.com/tuputech/tupu-go-sdk/recognition-api/speech/longasync"
+	longSpch "github.com/tuputech/tupu-go-sdk/recognition/speech/longasync"
 )
 
 func main() {
@@ -13,7 +13,7 @@ func main() {
 	secretID := "5f48703b9b55e9001e694707"
 
 	// step2. create speech handler
-	speechHandler, err := longSpch.NewSpeechHandlerWithURL(
+	speechHandler, err := longSpch.NewSpeechHandler(
 		"/Users/mac/hcz/go_project/tupu_rsa_key/rsa_private_key.pem",
 		"http://172.26.2.63:51021/v3/recognition/speech/recording/async/",
 	)
@@ -23,12 +23,12 @@ func main() {
 	}
 	// step3. create LongSpeech object
 	longSpeech := &longSpch.LongSpeech{
-		URL:         "https://www.tuputech.com/original/world/data-c40/yrw/api_test_data/vulgar.wmv",
-		CallbackURL: "http:172.26.2.63:8991",
+		FileRemoteURL: "https://www.tuputech.com/original/world/data-c40/yrw/api_test_data/vulgar.wmv",
+		CallbackURL:   "http:172.26.2.63:8991",
 	}
 
 	// start recognition and get result
-	printResult(speechHandler.Perform(secretID, longSpeech))
+	printResult(speechHandler.Perform(secretID, longSpeech, 0))
 }
 
 func printResult(result string, statusCode int, err error) {

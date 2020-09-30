@@ -1,12 +1,12 @@
 package longasync
 
 import (
-	generalrcn "github.com/tuputech/tupu-go-sdk/recognition-api/general"
+	tupumodel "github.com/tuputech/tupu-go-sdk/lib/model"
 )
 
 // SpeechResult is a wrapper for service result parsed from response
 type SpeechResult struct {
-	generalrcn.Result
+	*tupumodel.Result
 }
 
 // ParseResult is a helper to parse json string and create a Result struct
@@ -15,6 +15,6 @@ func ParseResult(result string) *SpeechResult {
 		return nil
 	}
 	speechRlt := new(SpeechResult)
-	speechRlt.Result = *generalrcn.ParseResult(result)
+	speechRlt.Result = tupumodel.ParseResult(result)
 	return speechRlt
 }

@@ -1,7 +1,13 @@
-package generalapi
+package errorlib
 
 import (
+	"reflect"
 	"runtime"
+)
+
+const (
+	// ErrorParamsIsEmpty describes illegal parameters
+	ErrorParamsIsEmpty = "Params can't empty"
 )
 
 // GetCurrentFuncName is a util function for gettiing current execution function name
@@ -22,7 +28,8 @@ func getFuncName(rank int) string {
 // PtrIsNil is a util function for check the legality of the params
 func PtrIsNil(data ...interface{}) bool {
 	for _, v := range data {
-		if v == nil {
+		vPtr := reflect.ValueOf(v)
+		if (vPtr.Kind() == reflect.Ptr) && vPtr.IsNil() {
 			return true
 		}
 	}
