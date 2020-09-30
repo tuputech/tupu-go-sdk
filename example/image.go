@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+
 	//rcn "recognition"
 	"time"
 
@@ -10,7 +11,7 @@ import (
 )
 
 func main() {
-	secretID := "your-secret-id"
+	secretID := "5d3982e0d06eeb0facac6c58"
 	handler, e := rcn.NewHandler("rsa_private_key.pem")
 	if e != nil {
 		fmt.Printf("Failed: %v\n", e)
@@ -27,24 +28,24 @@ func main() {
 	// }
 	// handler.Client = &http.Client{Transport: tr}
 
-	url1 := "http://www.yourdomain.com/img/1.jpg"
+	url1 := "https://www.tuputech.com/original/world/data-c40/yrw/api_test_data/normal.jpg"
 	url2 := "http://www.yourdomain.com/img/2.jpg"
 	images1 := []string{url1, url2}
 	//No tag for images
 	printResult(handler.PerformWithURL(secretID, images1, nil))
 	//Number of tags less than number of images, the rest images will use the last tag
-	printResult(handler.PerformWithURL(secretID, images1, []string{"Remote Image"}))
+	// printResult(handler.PerformWithURL(secretID, images1, []string{"Remote Image"}))
 
 	//Using local file or binary data
-	fileBytes, e2 := ioutil.ReadFile("img/1.jpg")
+	fileBytes, e2 := ioutil.ReadFile("/Users/mac/Downloads/tp.jpeg")
 	if e2 != nil {
 		fmt.Printf("Could not load image: %v", e2)
 		return
 	}
 	imgBinary := rcn.NewBinaryImage(fileBytes, "1.jpg")
 	defer imgBinary.ClearBuffer()
-	images2 := []*rcn.Image{rcn.NewLocalImage("img/2.jpg"), imgBinary}
-	printResult(handler.Perform(secretID, images2, []string{"Local Image", "Using Buffer"}))
+	// images2 := []*rcn.Image{rcn.NewLocalImage("/Users/mac/Downloads/tp.jpeg"), imgBinary}
+	// printResult(handler.Perform(secretID, images2, []string{"Local Image", "Using Buffer"}))
 }
 
 func printResult(result string, statusCode int, e error) {

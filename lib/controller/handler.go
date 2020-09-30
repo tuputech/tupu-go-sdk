@@ -162,18 +162,11 @@ func (h *Handler) Recognize(secretID string, dataInfoSlice []*tupumodel.DataInfo
 		return
 	}
 
-	fmt.Println("---------------------------------------------------")
-	fmt.Println(req)
-	fmt.Println("---------------------------------------------------")
-
 	if resp, e = h.Client.Do(req); e != nil {
 		//log.Fatal(e)
 		return
 	}
 
-	fmt.Println("---------------------------------------------------")
-	fmt.Println(resp)
-	fmt.Println("---------------------------------------------------")
 	if result, statusCode, e = h.processResp(resp); e != nil {
 		//log.Fatal(e)
 		return
@@ -199,13 +192,14 @@ func (h *Handler) GetGeneralParams(secretID string) (map[string]string, error) {
 		params    = map[string]string{
 			"timestamp": timestamp,
 			"nonce":     nonce,
-			"signature": signature,
 		}
 	)
 
 	if signature, e = h.sign([]byte(forSign)); e != nil {
 		return nil, e
 	}
+
+	params["signature"] = signature
 
 	if len(h.UID) > 0 {
 		params["uid"] = h.UID
@@ -272,6 +266,7 @@ func (h *Handler) request(url *string, params *map[string]string, dataInfoSlice 
 	req.Header.Set("Content-Type", writer.FormDataContentType())
 	req.Header.Set("User-Agent", h.UserAgent)
 	req.Header.Set("Timeout", h.Timeout)
+	// fmt.Println(req)
 
 	return
 }

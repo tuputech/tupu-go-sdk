@@ -69,12 +69,18 @@ func printResult(result string, statusCode int, err error) {
 		return
 	}
 	fmt.Println("-------- v1.0 --------")
+	fmt.Println(result)
 	fmt.Printf("Status-Code: %v\n-----\n", statusCode)
 
 	r := spch.ParseResult(result)
 	fmt.Printf("- Code: %v %v\n- Time: %v\n", r.Code, r.Message, time.Unix(r.Timestamp, 0))
-	for k, v := range r.Tasks {
-		fmt.Printf("- Task: [%v]\n%v\n", k, v)
-	}
+	/*
+		for k, v := range r.Tasks {
+			fmt.Printf("- Task: [%v]\n%v\n", k, v)
+		}
+	*/
+	fmt.Printf("- speechs: %v\n", r.ValgurAndSing.Speechs[0])
 	fmt.Println("----------------------\n")
+
+	fmt.Println(r)
 }

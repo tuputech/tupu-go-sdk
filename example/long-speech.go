@@ -28,7 +28,11 @@ func main() {
 	}
 
 	// start recognition and get result
-	printResult(speechHandler.Perform(secretID, longSpeech, 0))
+	result, statusCode, err := speechHandler.Perform(secretID, longSpeech, 0)
+	fmt.Println("--------------- debug -------------")
+	fmt.Println(result)
+	fmt.Println("--------------- debug -------------")
+	printResult(result, statusCode, err)
 }
 
 func printResult(result string, statusCode int, err error) {

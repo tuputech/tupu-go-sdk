@@ -73,15 +73,23 @@ func (h *Handler) Perform(secretID string, images []*Image, tags []string) (resu
 		e = fmt.Errorf("%s, %s", tupuerror.ErrorParamsIsEmpty, tupuerror.GetCallerFuncName())
 	}
 
+	// once request only can carry in 10 images
+	if len(images) > 10 {
+		e = fmt.Errorf("Once request only can bring 10 images")
+		return
+	}
+
 	var (
 		tagsLen       = len(tags)
 		imagesLen     = len(images)
 		dataInfoSlice = make([]*tupumodel.DataInfo, 0)
 	)
 
-	for i := 0; i < tagsLen && i < imagesLen; i++ {
+	for i := 0; i < imagesLen; i++ {
 		images[i].dataInfo.OtherMsg = make(map[string]string)
-		images[i].dataInfo.OtherMsg["tag"] = tags[i]
+		if i < tagsLen {
+			images[i].dataInfo.OtherMsg["tag"] = tags[i]
+		}
 		dataInfoSlice = append(dataInfoSlice, images[i].dataInfo)
 	}
 
