@@ -55,6 +55,37 @@ type Handler struct {
 	Client *http.Client
 }
 
+// SetTimeout is the Handler method to setting the UserAgent attribute
+func (hdler *Handler) SetTimeout(timeout int) {
+	if timeout != 0 {
+		hdler.Timeout = string(timeout)
+	}
+}
+
+// SetContentType is the Handler method to setting the UserAgent attribute
+func (hdler *Handler) SetContentType(contentType string) {
+	if tupuerrorlib.StringIsEmpty(contentType) {
+		return
+	}
+	hdler.ContentType = contentType
+}
+
+// SetUserAgent is the Handler method to setting the UserAgent attribute
+func (hdler *Handler) SetUserAgent(userAgent string) {
+	if tupuerrorlib.StringIsEmpty(userAgent) {
+		return
+	}
+	hdler.UserAgent = userAgent
+}
+
+// SetUID is the Handler method to setting the UID attribute
+func (hdler *Handler) SetUID(uid string) {
+	if tupuerrorlib.StringIsEmpty(uid) {
+		return
+	}
+	hdler.UID = uid
+}
+
 // NewHandlerWithURL is also an initializer for a Handler
 func NewHandlerWithURL(privateKeyPath, url string) (h *Handler, e error) {
 	// verify legatity params

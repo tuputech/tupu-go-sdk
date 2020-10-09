@@ -18,7 +18,7 @@ func main() {
 		return
 	}
 	//Optional Step: set identity of sub-user if necessary
-	//handler.UID = "bucket-of-jackbauer"
+	handler.UID = "bucket-of-jackbauer"
 
 	//Optional Step: using http-client created by your own
 	// tr := &http.Transport{
@@ -34,7 +34,7 @@ func main() {
 	//No tag for images
 	printResult(handler.PerformWithURL(secretID, images1, nil))
 	//Number of tags less than number of images, the rest images will use the last tag
-	// printResult(handler.PerformWithURL(secretID, images1, []string{"Remote Image"}))
+	printResult(handler.PerformWithURL(secretID, images1, []string{"Remote Image"}))
 
 	//Using local file or binary data
 	fileBytes, e2 := ioutil.ReadFile("/Users/mac/Downloads/tp.jpeg")
@@ -44,8 +44,8 @@ func main() {
 	}
 	imgBinary := rcn.NewBinaryImage(fileBytes, "1.jpg")
 	defer imgBinary.ClearBuffer()
-	// images2 := []*rcn.Image{rcn.NewLocalImage("/Users/mac/Downloads/tp.jpeg"), imgBinary}
-	// printResult(handler.Perform(secretID, images2, []string{"Local Image", "Using Buffer"}))
+	images2 := []*rcn.Image{rcn.NewLocalImage("/Users/mac/Downloads/tp.jpeg"), imgBinary}
+	printResult(handler.Perform(secretID, images2, []string{"Local Image", "Using Buffer"}))
 }
 
 func printResult(result string, statusCode int, e error) {

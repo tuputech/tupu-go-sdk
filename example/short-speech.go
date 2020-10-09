@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"time"
 
+	"github.com/bitly/go-simplejson"
 	spch "github.com/tuputech/tupu-go-sdk/recognition/speech/shortsync"
 )
 
@@ -12,9 +13,10 @@ func main() {
 
 	// step1. get your secretID
 	secretID := "5f042c1f1bac63001e897f27"
+	privateKeyPath := "rsa_private_key.pem"
+	serverURL := ""
 	// step2. create speech handler
-	speechHandler, err := spch.NewShortSpeechHandler("/Users/mac/hcz/go_project/tupu_rsa_key/rsa_private_key.pem",
-		"http://172.26.2.63:8991/v3/recognition/speech/")
+	speechHandler, err := spch.NewShortSpeechHandler(privateKeyPath, serverURL)
 	if err != nil {
 		fmt.Println("-------- ERROR ----------")
 		return
@@ -25,10 +27,10 @@ func main() {
 	testSpeechAPIWithURL(secretID, speechHandler)
 
 	// test demo2
-	//testSpeechAPIWithPath(secretID, speechHandler)
+	testSpeechAPIWithPath(secretID, speechHandler)
 
 	// test demo3
-	//testSpeechAPIWithBinary(secretID, speechHandler)
+	testSpeechAPIWithBinary(secretID, speechHandler)
 }
 
 func testSpeechAPIWithBinary(secretID string, speechHandler *spch.ShortSpeechHandler) {
@@ -48,6 +50,8 @@ func testSpeechAPIWithBinary(secretID string, speechHandler *spch.ShortSpeechHan
 func testSpeechAPIWithPath(secretID string, speechHandler *spch.ShortSpeechHandler) {
 	// step1. get speech file path
 	speechPaths := []string{
+		"/Users/mac/Music/vulgar.wmv",
+		"/Users/mac/Music/vulgar.wmv",
 		"/Users/mac/Music/vulgar.wmv",
 	}
 
@@ -69,18 +73,35 @@ func printResult(result string, statusCode int, err error) {
 		return
 	}
 	fmt.Println("-------- v1.0 --------")
-	fmt.Println(result)
+	// fmt.Println(result)
 	fmt.Printf("Status-Code: %v\n-----\n", statusCode)
 
-	r := spch.ParseResult(result)
-	fmt.Printf("- Code: %v %v\n- Time: %v\n", r.Code, r.Message, time.Unix(r.Timestamp, 0))
-	/*
-		for k, v := range r.Tasks {
-			fmt.Printf("- Task: [%v]\n%v\n", k, v)
-		}
-	*/
-	fmt.Printf("- speechs: %v\n", r.ValgurAndSing.Speechs[0])
-	fmt.Println("----------------------\n")
+	// Example of parsing json string using simplejson
+	var (
+		rlt, e        = simplejson.NewJson([]byte(result))
+		task          map[string]interface{}
+		code, message string
+		timestamp     int64
+	)
+	if e != nil {
+		fmt.Println("[ERROR] params error")
+		return
+	}
 
-	fmt.Println(r)
+	// Get the value corresponding to the key in json
+	code, e = rlt.Get("code").String()
+	message, e = rlt.Get("message").String()
+	timestamp, e = rlt.Get("timestamp").Int64()
+	timestamp = int64(float64(timestamp) / 1000)
+	task, e = rlt.Get("5c8213b9bc807806aab0a574").Map()
+	if e != nil {
+		fmt.Println("decode error")
+		return
+	}
+
+	fmt.Printf("- Code: %v %v\n- Time: %v\n", code, message, time.Unix(timestamp, 0))
+	for k, v := range task {
+		fmt.Printf("- Task: [%v]\n%v\n", k, v)
+	}
+	fmt.Println("----------------------\n")
 }

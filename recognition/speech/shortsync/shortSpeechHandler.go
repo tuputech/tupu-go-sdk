@@ -2,6 +2,7 @@ package shortsync
 
 import (
 	"fmt"
+	"path"
 
 	tupucontrol "github.com/tuputech/tupu-go-sdk/lib/controller"
 	tupuerror "github.com/tuputech/tupu-go-sdk/lib/errorlib"
@@ -42,7 +43,7 @@ func NewShortSpeechHandler(privateKeyPath, url string) (*ShortSpeechHandler, err
 	return spHdler, nil
 }
 
-// PerformWithBinary is the major method for initiating a speech recognition request
+// PerformWithBinary is the major method for initiating a speech recognition request, Params binaryData key is fileName(include filetype, example "1.flv"), value is binary data
 func (spHdler *ShortSpeechHandler) PerformWithBinary(secretID string, binaryData map[string][]byte, timeout int) (result string, statusCode int, err error) {
 
 	// verify the params
@@ -52,9 +53,7 @@ func (spHdler *ShortSpeechHandler) PerformWithBinary(secretID string, binaryData
 		return
 	}
 
-	if timeout != 0 {
-		spHdler.hdler.Timeout = string(timeout)
-	}
+	spHdler.hdler.SetTimeout(timeout)
 
 	var (
 		dataInfoSlice = make([]*tupumodel.DataInfo, 0)
@@ -63,6 +62,14 @@ func (spHdler *ShortSpeechHandler) PerformWithBinary(secretID string, binaryData
 
 	// wrapper data to DataInfo
 	for fileName, buf := range binaryData {
+		// verify the file extend
+		extend := path.Ext(fileName)
+		if illegalSpeechFile(extend) {
+			err = fmt.Errorf("illegal speech file, only supports wav, wmv, mp3, flv, amr, your file is %v", extend)
+			statusCode = 400
+			return
+		}
+
 		shortSpch = NewBinarySpeech(buf, fileName)
 		dataInfoSlice = append(dataInfoSlice, shortSpch.dataInfo)
 	}
@@ -84,9 +91,7 @@ func (spHdler *ShortSpeechHandler) PerformWithURL(secretID string, URLs []string
 		shortSpch     *ShortSpeech
 	)
 
-	if timeout != 0 {
-		spHdler.hdler.Timeout = string(timeout)
-	}
+	spHdler.hdler.SetTimeout(timeout)
 
 	// wrapper data to DataInfo
 	for _, url := range URLs {
@@ -112,9 +117,7 @@ func (spHdler *ShortSpeechHandler) PerformWithPath(secretID string, speechPaths 
 		shortSpch     *ShortSpeech
 	)
 
-	if timeout != 0 {
-		spHdler.hdler.Timeout = string(timeout)
-	}
+	spHdler.hdler.SetTimeout(timeout)
 
 	// wrapper data to DataInfo
 	for _, path := range speechPaths {
@@ -124,4 +127,13 @@ func (spHdler *ShortSpeechHandler) PerformWithPath(secretID string, speechPaths 
 
 	// Do request
 	return spHdler.hdler.Recognize(secretID, dataInfoSlice)
+}
+
+func illegalSpeechFile(fileExtend string) bool {
+	switch fileExtend {
+	case ".amr", ".mp3", ".wmv", ".wav", ".flv":
+		return false
+	default:
+		return true
+	}
 }

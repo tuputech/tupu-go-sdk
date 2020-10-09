@@ -22,6 +22,54 @@ type DataInfo struct {
 	OtherMsg map[string]string
 }
 
+// SetOtherMsg is setting function for DataInfo object
+func (dataInfo *DataInfo) SetOtherMsg(msg map[string]string) {
+	if tupuerrorlib.PtrIsNil(msg) {
+		return
+	}
+	dataInfo.OtherMsg = msg
+}
+
+// SetBuf is setting function for DataInfo object
+func (dataInfo *DataInfo) SetBuf(buf []byte) {
+	if tupuerrorlib.PtrIsNil(buf) {
+		return
+	}
+	dataInfo.Buf = bytes.NewBuffer(buf)
+}
+
+// SetFileType is setting function for DataInfo object
+func (dataInfo *DataInfo) SetFileType(ftype string) {
+	if tupuerrorlib.StringIsEmpty(ftype) {
+		return
+	}
+	dataInfo.FileType = ftype
+}
+
+// SetFileName is setting function for DataInfo object
+func (dataInfo *DataInfo) SetFileName(fName string) {
+	if tupuerrorlib.StringIsEmpty(fName) {
+		return
+	}
+	dataInfo.FileName = fName
+}
+
+// SetRemoteInfo is setting function for DataInfo object
+func (dataInfo *DataInfo) SetRemoteInfo(fRemoteInfo string) {
+	if tupuerrorlib.StringIsEmpty(fRemoteInfo) {
+		return
+	}
+	dataInfo.RemoteInfo = fRemoteInfo
+}
+
+// SetPath is setting function for DataInfo object
+func (dataInfo *DataInfo) SetPath(localPath string) {
+	if tupuerrorlib.StringIsEmpty(localPath) {
+		return
+	}
+	dataInfo.Path = localPath
+}
+
 // NewRemoteDataInfo is an initializer for create data resource with a url
 func NewRemoteDataInfo(remoteInfo string) *DataInfo {
 	// verify legatity params
@@ -29,7 +77,7 @@ func NewRemoteDataInfo(remoteInfo string) *DataInfo {
 		return nil
 	}
 	dataInfo := new(DataInfo)
-	dataInfo.RemoteInfo = remoteInfo
+	dataInfo.SetRemoteInfo(remoteInfo)
 	return dataInfo
 }
 
@@ -40,7 +88,7 @@ func NewLocalDataInfo(path string) *DataInfo {
 		return nil
 	}
 	dataInfo := new(DataInfo)
-	dataInfo.Path = path
+	dataInfo.SetPath(path)
 	return dataInfo
 }
 
@@ -51,16 +99,10 @@ func NewBinaryDataInfo(buf []byte, filename string) *DataInfo {
 		return nil
 	}
 	dataInfo := new(DataInfo)
-	dataInfo.Buf = bytes.NewBuffer(buf)
-	dataInfo.FileName = filename
+	dataInfo.SetBuf(buf)
+	dataInfo.SetFileName(filename)
 	return dataInfo
 }
-
-// Tag is an helper to set property tag of DataInfo and return DataInfo itself
-// func (i *DataInfo) Tag(tag string) *DataInfo {
-// 	i.tag = tag
-// 	return i
-// }
 
 // ClearBuffer is an helper to set property tag of DataInfo and return DataInfo itself
 func (dataInfo *DataInfo) ClearBuffer() {

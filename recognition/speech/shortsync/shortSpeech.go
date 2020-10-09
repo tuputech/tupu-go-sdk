@@ -2,8 +2,6 @@
 package shortsync
 
 import (
-	"bytes"
-
 	tupuerror "github.com/tuputech/tupu-go-sdk/lib/errorlib"
 	tupumodel "github.com/tuputech/tupu-go-sdk/lib/model"
 )
@@ -18,7 +16,7 @@ func newShortSpeech() *ShortSpeech {
 		speech   = new(ShortSpeech)
 		dataInfo = new(tupumodel.DataInfo)
 	)
-	dataInfo.FileType = "speech"
+	dataInfo.SetFileType("speech")
 	speech.dataInfo = dataInfo
 	return speech
 }
@@ -31,7 +29,7 @@ func NewRemoteSpeech(url string) *ShortSpeech {
 		return nil
 	}
 	speech := newShortSpeech()
-	speech.dataInfo.RemoteInfo = url
+	speech.dataInfo.SetRemoteInfo(url)
 	return speech
 }
 
@@ -44,7 +42,7 @@ func NewLocalSpeech(path string) *ShortSpeech {
 	}
 
 	speech := newShortSpeech()
-	speech.dataInfo.Path = path
+	speech.dataInfo.SetPath(path)
 
 	return speech
 }
@@ -57,13 +55,13 @@ func NewBinarySpeech(buf []byte, fileName string) *ShortSpeech {
 	}
 
 	speech := newShortSpeech()
-	speech.dataInfo.Buf = bytes.NewBuffer(buf)
-	speech.dataInfo.FileName = fileName
+	speech.dataInfo.SetBuf(buf)
+	speech.dataInfo.SetFileName(fileName)
 
 	return speech
 }
 
 // ClearBuffer is an helper to clear speech binary content
 func (speech *ShortSpeech) ClearBuffer() {
-	speech.dataInfo.Buf = nil
+	speech.dataInfo.ClearBuffer()
 }
