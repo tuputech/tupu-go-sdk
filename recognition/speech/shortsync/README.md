@@ -4,7 +4,7 @@
 
 
 ## Example
-For the returned json format string, the corresponding structure analysis is no longer provided, you can use a package similar to simplejson to parse the json string and get the fields you want.
+For the returned json format string, the corresponding structure analysis is no longer provided, you can use a package similar to `simplejson` to parse the json string and get the fields you want.
 
 > The processing entry is `ShortSpeechHandler` struct, using its three methods(`PerformWithBinary()`, `PerformWithURL()`, `PerformWithPath()`) to get the recognition results
 > [shortSpeech recognition interface example](github.com/tuputech/tupu-go-sdk/example/short-speech.go)

@@ -4,7 +4,7 @@
 go get github.com/tuputech/tupu-go-sdk/recognition
 
 ## Example
-For the returned json format string, the corresponding structure analysis is no longer provided, you can use a package similar to simplejson to parse the json string and get the fields you want.
+For the returned json format string, the corresponding structure analysis is no longer provided, you can use a package similar to `simplejson` to parse the json string and get the fields you want.
 
 [longSpeech recognition interface example](./example/long-speech.go)
 
