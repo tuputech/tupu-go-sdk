@@ -11,9 +11,9 @@ import (
 func main() {
 
 	// step1. get your secretID
-	secretID := "5f48703b9b55e9001e694707"
+	secretID := "your-secretID"
 	privateKeyPath := "rsa_private_key.pem"
-	// serverURL := "http://172.26.2.63:51021/v3/recognition/speech/recording/async/"
+	// empty string will using default server url
 	serverURL := ""
 
 	// step2. create speech handler

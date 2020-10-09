@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	secretID := "5d3982e0d06eeb0facac6c58"
+	secretID := "your-secretID"
 	handler, e := rcn.NewHandler("rsa_private_key.pem")
 	if e != nil {
 		fmt.Printf("Failed: %v\n", e)
@@ -57,7 +57,7 @@ func printResult(result string, statusCode int, e error) {
 	fmt.Printf("Status-Code: %v\n-----\n", statusCode)
 
 	r := rcn.ParseResult(result)
-	fmt.Printf("- Code: %v %v\n- Time: %v\n", r.Code, r.Message, time.Unix(r.Timestamp, 0))
+	fmt.Printf("- Code: %v %v\n- Time: %v\n", r.Code, r.Message, time.Unix(int64(float64(r.Timestamp)/1000), 0))
 	for k, v := range r.Tasks {
 		fmt.Printf("- Task: [%v]\n%v\n", k, v)
 	}

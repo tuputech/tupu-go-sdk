@@ -12,7 +12,7 @@ import (
 func main() {
 
 	// step1. get your secretID
-	secretID := "5f042c1f1bac63001e897f27"
+	secretID := "your-secretID"
 	privateKeyPath := "rsa_private_key.pem"
 	serverURL := ""
 	// step2. create speech handler
