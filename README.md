@@ -31,9 +31,9 @@ go get github.com/tuputech/tupu-go-sdk/recognition
 
 ## Example
 
-[Image recognition interface example](./example/image.go)
-[shortSpeech recognition interface example](./example/short-speech.go)
-[longSpeech recognition interface example](./example/long-speech.go)
+1. [Image recognition interface example](./example/image.go)  
+2. [shortSpeech recognition interface example](./example/short-speech.go)  
+3. [longSpeech recognition interface example](./example/long-speech.go)  
 
 ----------------------
 
