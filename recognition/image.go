@@ -1,36 +1,59 @@
 package recognition
 
-import "bytes"
+import (
+	"bytes"
+
+	tupuerror "github.com/tuputech/tupu-go-sdk/lib/errorlib"
+	tupumodel "github.com/tuputech/tupu-go-sdk/lib/model"
+)
 
 // Image is a wrapper for storing url, path or binary content of an image
 type Image struct {
-	url      string
-	path     string
-	buf      *bytes.Buffer
-	filename string
-	//tag      string
+	dataInfo *tupumodel.DataInfo
+}
+
+func newImage() *Image {
+	img := new(Image)
+	img.dataInfo = new(tupumodel.DataInfo)
+	img.dataInfo.FileType = "image"
+	return img
 }
 
 // NewRemoteImage is an initializer for create image resource with a url
 func NewRemoteImage(url string) *Image {
-	i := new(Image)
-	i.url = url
-	return i
+	// verify legatity params
+	if tupuerror.StringIsEmpty(url) {
+		return nil
+	}
+
+	img := newImage()
+	img.dataInfo.RemoteInfo = url
+	return img
 }
 
 // NewLocalImage is an initializer for create image resource with a file path
 func NewLocalImage(path string) *Image {
-	i := new(Image)
-	i.path = path
-	return i
+	// verfify legatity params
+	if tupuerror.StringIsEmpty(path) {
+		return nil
+	}
+
+	img := newImage()
+	img.dataInfo.Path = path
+	return img
 }
 
 // NewBinaryImage is an initializer for create image resource with binary content
 func NewBinaryImage(buf []byte, filename string) *Image {
-	i := new(Image)
-	i.buf = bytes.NewBuffer(buf)
-	i.filename = filename
-	return i
+	// verify legatity params
+	if tupuerror.StringIsEmpty(filename) || tupuerror.PtrIsNil(buf) {
+		return nil
+	}
+
+	img := newImage()
+	img.dataInfo.Buf = bytes.NewBuffer(buf)
+	img.dataInfo.FileName = filename
+	return img
 }
 
 // Tag is an helper to set property tag of Image and return Image itself
@@ -40,6 +63,6 @@ func NewBinaryImage(buf []byte, filename string) *Image {
 // }
 
 // ClearBuffer is an helper to set property tag of Image and return Image itself
-func (i *Image) ClearBuffer() {
-	i.buf = nil
+func (img *Image) ClearBuffer() {
+	img.dataInfo.Buf = nil
 }
