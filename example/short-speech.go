@@ -42,6 +42,7 @@ func testSpeechAPIWithBinary(secretID string, speechHandler *spch.ShortSpeechHan
 		fmt.Printf("Could not load voice: %v", e2)
 		return
 	}
+	// key is your fileName, value is the speech binary data
 	speechSlice := map[string][]byte{
 		filepath.Base(filePath): fileBytes,
 	}
