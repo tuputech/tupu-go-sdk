@@ -11,7 +11,7 @@ import (
 func main() {
 
 	// step1. get your secretID
-	secretID := "your-secretID"
+	secretID := "your secretID"
 	privateKeyPath := "rsa_private_key.pem"
 	// empty string will using default server url
 	serverURL := ""
@@ -24,8 +24,8 @@ func main() {
 	}
 	// step3. create LongSpeech object
 	longSpeech := &longSpch.LongSpeech{
-		FileRemoteURL: "https://www.tuputech.com/original/world/data-c40/yrw/api_test_data/vulgar.wmv",
-		CallbackURL:   "http:172.26.2.63:8991",
+		FileRemoteURL: "your speech url",
+		CallbackURL:   "your callback url",
 	}
 
 	// start recognition and get result

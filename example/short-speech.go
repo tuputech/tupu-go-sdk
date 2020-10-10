@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"path/filepath"
 	"time"
 
 	"github.com/bitly/go-simplejson"
@@ -12,7 +13,7 @@ import (
 func main() {
 
 	// step1. get your secretID
-	secretID := "your-secretID"
+	secretID := "your secretID"
 	privateKeyPath := "rsa_private_key.pem"
 	serverURL := ""
 	// step2. create speech handler
@@ -35,13 +36,14 @@ func main() {
 
 func testSpeechAPIWithBinary(secretID string, speechHandler *spch.ShortSpeechHandler) {
 	//Using local file or binary data
-	fileBytes, e2 := ioutil.ReadFile("/Users/mac/Music/vulgar.wmv")
+	filePath := "your speech filePath"
+	fileBytes, e2 := ioutil.ReadFile(filePath)
 	if e2 != nil {
 		fmt.Printf("Could not load voice: %v", e2)
 		return
 	}
 	speechSlice := map[string][]byte{
-		"1.wmv": fileBytes,
+		filepath.Base(filePath): fileBytes,
 	}
 
 	printResult(speechHandler.PerformWithBinary(secretID, speechSlice, 0))
@@ -50,9 +52,7 @@ func testSpeechAPIWithBinary(secretID string, speechHandler *spch.ShortSpeechHan
 func testSpeechAPIWithPath(secretID string, speechHandler *spch.ShortSpeechHandler) {
 	// step1. get speech file path
 	speechPaths := []string{
-		"/Users/mac/Music/vulgar.wmv",
-		"/Users/mac/Music/vulgar.wmv",
-		"/Users/mac/Music/vulgar.wmv",
+		"your speech filePath",
 	}
 
 	// step2. get result of speech recognition API
@@ -62,12 +62,13 @@ func testSpeechAPIWithPath(secretID string, speechHandler *spch.ShortSpeechHandl
 func testSpeechAPIWithURL(secretID string, speechHandler *spch.ShortSpeechHandler) {
 	// step1. get speech file url
 	speechURLs := []string{
-		"https://www.tuputech.com/original/world/data-c40/yrw/api_test_data/vulgar.wmv",
+		"your speech url",
 	}
 	printResult(speechHandler.PerformWithURL(secretID, speechURLs, 0))
 }
 
 func printResult(result string, statusCode int, err error) {
+	fmt.Printf("result: %s\n", result)
 	if err != nil {
 		fmt.Printf("Failed: %v\n", err)
 		return
@@ -93,6 +94,7 @@ func printResult(result string, statusCode int, err error) {
 	message, e = rlt.Get("message").String()
 	timestamp, e = rlt.Get("timestamp").Int64()
 	timestamp = int64(float64(timestamp) / 1000)
+	// pase vulgar speech
 	task, e = rlt.Get("5c8213b9bc807806aab0a574").Map()
 	if e != nil {
 		fmt.Println("decode error")

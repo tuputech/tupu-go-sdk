@@ -13,6 +13,7 @@ For the returned json format string, the corresponding structure analysis is no 
 ### func Perform
 func (spHdler *LongSpeechHandler) Perform(secretID string, longspch *LongSpeech, timeout int) (result string, statusCode int, err error)
 
+> **Params**
 - **secretID**: secret-id for recognition tasks
 - **longspch**: LongSpeech struct wrapper long speech message for request
 - **timeout**: Set request timeout, if value equal 0, will using default timeout(30s)

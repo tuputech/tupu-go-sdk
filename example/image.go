@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	secretID := "your-secretID"
+	secretID := "your secretID"
 	handler, e := rcn.NewHandler("rsa_private_key.pem")
 	if e != nil {
 		fmt.Printf("Failed: %v\n", e)
@@ -28,8 +28,8 @@ func main() {
 	// }
 	// handler.Client = &http.Client{Transport: tr}
 
-	url1 := "https://www.tuputech.com/original/world/data-c40/yrw/api_test_data/normal.jpg"
-	url2 := "http://www.yourdomain.com/img/2.jpg"
+	url1 := "your speech url1"
+	url2 := "your speech url2"
 	images1 := []string{url1, url2}
 	//No tag for images
 	printResult(handler.PerformWithURL(secretID, images1, nil))
@@ -37,14 +37,14 @@ func main() {
 	printResult(handler.PerformWithURL(secretID, images1, []string{"Remote Image"}))
 
 	//Using local file or binary data
-	fileBytes, e2 := ioutil.ReadFile("/Users/mac/Downloads/tp.jpeg")
+	fileBytes, e2 := ioutil.ReadFile("your speech filePath")
 	if e2 != nil {
 		fmt.Printf("Could not load image: %v", e2)
 		return
 	}
 	imgBinary := rcn.NewBinaryImage(fileBytes, "1.jpg")
 	defer imgBinary.ClearBuffer()
-	images2 := []*rcn.Image{rcn.NewLocalImage("/Users/mac/Downloads/tp.jpeg"), imgBinary}
+	images2 := []*rcn.Image{rcn.NewLocalImage("your speech filePath"), imgBinary}
 	printResult(handler.Perform(secretID, images2, []string{"Local Image", "Using Buffer"}))
 }
 
