@@ -15,7 +15,7 @@ type Image struct {
 func newImage() *Image {
 	img := new(Image)
 	img.dataInfo = new(tupumodel.DataInfo)
-	img.dataInfo.FileType = "image"
+	img.dataInfo.SetFileType("image")
 	return img
 }
 
@@ -27,7 +27,7 @@ func NewRemoteImage(url string) *Image {
 	}
 
 	img := newImage()
-	img.dataInfo.RemoteInfo = url
+	img.dataInfo.SetRemoteInfo(url)
 	return img
 }
 
@@ -39,7 +39,7 @@ func NewLocalImage(path string) *Image {
 	}
 
 	img := newImage()
-	img.dataInfo.Path = path
+	img.dataInfo.SetPath(path)
 	return img
 }
 
