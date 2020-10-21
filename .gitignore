@@ -1,6 +1,9 @@
 .idea/
+.DS_Store
 
 .vscode/
+go.mod
+go.sum
 
 test/img/
 
@@ -10,6 +13,7 @@ test/test_local.go
 
 example/go.mod
 example/go.sum
+example/.DS_Store
 
 recognition/go.mod
 recognition/go.sum

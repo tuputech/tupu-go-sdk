@@ -60,7 +60,7 @@ func (spHdler *LongSpeechHandler) Perform(secretID string, longspch *LongSpeech,
 	)
 
 	if timeout != 0 {
-		spHdler.hdler.Timeout = string(timeout)
+		spHdler.hdler.SetTimeout(timeout)
 	}
 
 	// step2. serialize to JSON string
@@ -69,5 +69,5 @@ func (spHdler *LongSpeechHandler) Perform(secretID string, longspch *LongSpeech,
 	requestParams = `"recording":` + string(recording)
 
 	// step3. transfer general api
-	return spHdler.hdler.RecognizeWithJSON(requestParams, secretID, spHdler.hdler.Timeout)
+	return spHdler.hdler.RecognizeWithJSON(requestParams, secretID)
 }
