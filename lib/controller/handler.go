@@ -58,7 +58,7 @@ type Handler struct {
 // SetTimeout is the Handler method to setting the UserAgent attribute
 func (hdler *Handler) SetTimeout(timeout int) {
 	if timeout != 0 {
-		hdler.Timeout = string(timeout)
+		hdler.Timeout = fmt.Sprintf("%d", timeout)
 	}
 }
 
@@ -87,36 +87,36 @@ func (hdler *Handler) SetUID(uid string) {
 }
 
 // NewHandlerWithURL is also an initializer for a Handler
-func NewHandlerWithURL(privateKeyPath, url string) (h *Handler, e error) {
+func NewHandlerWithURL(privateKeyPath, url string) (hdler *Handler, e error) {
 	// verify legatity params
 	if tupuerrorlib.StringIsEmpty(privateKeyPath, url) {
 		return nil, fmt.Errorf("%s, %s", tupuerrorlib.ErrorParamsIsEmpty, tupuerrorlib.GetCallerFuncName())
 	}
-	h = new(Handler)
+	hdler = new(Handler)
 
 	// init other default proprety
-	h.initHandler()
-	h.apiURL = RootAPIURL
-	h.apiURL = url
+	hdler.initHandler()
+	hdler.apiURL = RootAPIURL
+	hdler.apiURL = url
 
-	if h.verifier, e = tuputools.LoadTupuPublicKey(); e != nil {
+	if hdler.verifier, e = tuputools.LoadTupuPublicKey(); e != nil {
 		return nil, e
 	}
-	if h.signer, e = tuputools.LoadPrivateKey(privateKeyPath); e != nil {
+	if hdler.signer, e = tuputools.LoadPrivateKey(privateKeyPath); e != nil {
 		return nil, e
 	}
-	return h, nil
+	return hdler, nil
 }
 
-func (h *Handler) initHandler() {
-	h.UserAgent = DefaultUserAgent
-	h.ContentType = DefaultContentType
-	h.Timeout = "30"
-	h.Client = &http.Client{}
+func (hdler *Handler) initHandler() {
+	hdler.UserAgent = DefaultUserAgent
+	hdler.ContentType = DefaultContentType
+	hdler.Timeout = "30"
+	hdler.Client = &http.Client{}
 }
 
 // RecognizeWithJSON is one of major method to access recognition api
-func (h *Handler) RecognizeWithJSON(jsonStr, secretID, timeOut string) (result string, statusCode int, err error) {
+func (hdler *Handler) RecognizeWithJSON(jsonStr, secretID string) (result string, statusCode int, err error) {
 
 	// step1. Invalid parameter check
 	if tupuerrorlib.StringIsEmpty(jsonStr, secretID) {
@@ -129,13 +129,13 @@ func (h *Handler) RecognizeWithJSON(jsonStr, secretID, timeOut string) (result s
 	var (
 		params    map[string]string
 		paramsStr string
-		url       = h.apiURL + secretID
+		url       = hdler.apiURL + secretID
 		req       *http.Request
 		resp      *http.Response
 	)
 
 	// step2. get timestamp, nonce, signature
-	if params, err = h.GetGeneralParams(secretID); err != nil {
+	if params, err = hdler.GetGeneralParams(secretID); err != nil {
 		statusCode = 400
 		return
 	}
@@ -151,16 +151,16 @@ func (h *Handler) RecognizeWithJSON(jsonStr, secretID, timeOut string) (result s
 		return
 	}
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("User-Agent", h.UserAgent)
-	req.Header.Set("Timeout", timeOut)
+	req.Header.Set("User-Agent", hdler.UserAgent)
+	req.Header.Set("Timeout", hdler.Timeout)
 
 	// step5. access speech recognition API by HTTP
-	if resp, err = h.Client.Do(req); err != nil {
+	if resp, err = hdler.Client.Do(req); err != nil {
 		//log.Fatal(e)
 		return
 	}
 	// step6. serialize to result string
-	if result, statusCode, err = h.processResp(resp); err != nil {
+	if result, statusCode, err = hdler.processResp(resp); err != nil {
 		//log.Fatal(e)
 		return
 	}
@@ -168,7 +168,7 @@ func (h *Handler) RecognizeWithJSON(jsonStr, secretID, timeOut string) (result s
 }
 
 // Recognize is the major method for initiating a recognition request
-func (h *Handler) Recognize(secretID string, dataInfoSlice []*tupumodel.DataInfo) (result string, statusCode int, e error) {
+func (hdler *Handler) Recognize(secretID string, dataInfoSlice []*tupumodel.DataInfo) (result string, statusCode int, e error) {
 	// Only 10 data can be carried in one request
 	if len(dataInfoSlice) > 10 || tupuerrorlib.StringIsEmpty(secretID) {
 		result = ""
@@ -177,28 +177,28 @@ func (h *Handler) Recognize(secretID string, dataInfoSlice []*tupumodel.DataInfo
 	}
 
 	var (
-		url    = h.apiURL + secretID
+		url    = hdler.apiURL + secretID
 		req    *http.Request
 		resp   *http.Response
 		params map[string]string
 	)
 
-	if params, e = h.GetGeneralParams(secretID); e != nil {
+	if params, e = hdler.GetGeneralParams(secretID); e != nil {
 		statusCode = 400
 		return
 	}
 
-	if req, e = h.request(&url, &params, dataInfoSlice); e != nil {
+	if req, e = hdler.request(&url, &params, dataInfoSlice); e != nil {
 		//log.Fatal(e)
 		return
 	}
 
-	if resp, e = h.Client.Do(req); e != nil {
+	if resp, e = hdler.Client.Do(req); e != nil {
 		//log.Fatal(e)
 		return
 	}
 
-	if result, statusCode, e = h.processResp(resp); e != nil {
+	if result, statusCode, e = hdler.processResp(resp); e != nil {
 		//log.Fatal(e)
 		return
 	}
@@ -207,7 +207,7 @@ func (h *Handler) Recognize(secretID string, dataInfoSlice []*tupumodel.DataInfo
 }
 
 // GetGeneralParams is general function for getting TUPU base params
-func (h *Handler) GetGeneralParams(secretID string) (map[string]string, error) {
+func (hdler *Handler) GetGeneralParams(secretID string) (map[string]string, error) {
 	if tupuerrorlib.StringIsEmpty(secretID) {
 		return nil, fmt.Errorf("%s, %s", tupuerrorlib.ErrorParamsIsEmpty, tupuerrorlib.GetCallerFuncName())
 	}
@@ -226,40 +226,40 @@ func (h *Handler) GetGeneralParams(secretID string) (map[string]string, error) {
 		}
 	)
 
-	if signature, e = h.sign([]byte(forSign)); e != nil {
+	if signature, e = hdler.sign([]byte(forSign)); e != nil {
 		return nil, e
 	}
 
 	params["signature"] = signature
 
-	if len(h.UID) > 0 {
-		params["uid"] = h.UID
+	if len(hdler.UID) > 0 {
+		params["uid"] = hdler.UID
 	}
 	return params, nil
 }
 
-func (h *Handler) sign(message []byte) (string, error) {
-	signed, e := h.signer.Sign(message)
+func (hdler *Handler) sign(message []byte) (string, error) {
+	signed, e := hdler.signer.Sign(message)
 	if e != nil {
 		return "", fmt.Errorf("could not sign message: %v", e)
 	}
 	return base64.StdEncoding.EncodeToString(signed), nil
 }
 
-func (h *Handler) verify(message []byte, sig string) error {
+func (hdler *Handler) verify(message []byte, sig string) error {
 	data, e := base64.StdEncoding.DecodeString(sig)
 	if e != nil {
 		return fmt.Errorf("could not decode with Base64: %v", e)
 	}
 
-	e = h.verifier.Verify(message, data)
+	e = hdler.verifier.Verify(message, data)
 	if e != nil {
 		return fmt.Errorf("could not verify request: %v", e)
 	}
 	return nil
 }
 
-func (h *Handler) request(url *string, params *map[string]string, dataInfoSlice []*tupumodel.DataInfo) (req *http.Request, e error) {
+func (hdler *Handler) request(url *string, params *map[string]string, dataInfoSlice []*tupumodel.DataInfo) (req *http.Request, e error) {
 	// verify legatity params
 	if tupuerrorlib.PtrIsNil(url, params, dataInfoSlice) {
 		return nil, fmt.Errorf("%s, %s", tupuerrorlib.ErrorParamsIsEmpty, tupuerrorlib.GetCallerFuncName)
@@ -295,8 +295,8 @@ func (h *Handler) request(url *string, params *map[string]string, dataInfoSlice 
 		return
 	}
 	req.Header.Set("Content-Type", writer.FormDataContentType())
-	req.Header.Set("User-Agent", h.UserAgent)
-	req.Header.Set("Timeout", h.Timeout)
+	req.Header.Set("User-Agent", hdler.UserAgent)
+	req.Header.Set("Timeout", hdler.Timeout)
 	// fmt.Println(req)
 
 	return
@@ -336,7 +336,7 @@ func addDataInfoField(writer *multipart.Writer, dataInfo *tupumodel.DataInfo, id
 	return
 }
 
-func (h *Handler) processResp(resp *http.Response) (result string, statusCode int, e error) {
+func (hdler *Handler) processResp(resp *http.Response) (result string, statusCode int, e error) {
 	statusCode = resp.StatusCode
 	//if resp.StatusCode > 500 {
 	//	if resp.StatusCode == 502 {
@@ -374,6 +374,6 @@ func (h *Handler) processResp(resp *http.Response) (result string, statusCode in
 		e = errors.New("no server signature")
 		return
 	}
-	e = h.verify([]byte(result), sig)
+	e = hdler.verify([]byte(result), sig)
 	return
 }
