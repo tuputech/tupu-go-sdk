@@ -1,7 +1,7 @@
-package longasync
+package speechasync
 
-// LongSpeech is a structure that encapsulates long speech messages
-type LongSpeech struct {
+// SpeechAsync is a structure that encapsulates long speech messages
+type SpeechAsync struct {
 	// FileRemoteURL represents the address of the long voice, can't be empty
 	FileRemoteURL string `json:"url"`
 	// CallbackUrl represents the address of the callback result, cant' be empty

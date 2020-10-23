@@ -1,4 +1,4 @@
-package shortsync
+package speechsync
 
 import (
 	"fmt"
@@ -10,41 +10,41 @@ import (
 )
 
 const (
-	SpeechAPIURL = "http://api.open.tuputech.com/v3/recognition/speech/"
+	// SpeechSyncAPIURL is default recording service address
+	SpeechSyncAPIURL = "http://api.open.tuputech.com/v3/recognition/speech/"
 )
 
-// ShortSpeechHandler is a client-side helper to access TUPU speech recognition service
-type ShortSpeechHandler struct {
+// SyncHandler is a client-side helper to access TUPU speech recognition service
+type SyncHandler struct {
 	hdler *tupucontrol.Handler
 }
 
-// NewShortSpeechHandler is an initializer for a SpeechHandler
-func NewShortSpeechHandler(privateKeyPath, url string) (*ShortSpeechHandler, error) {
+// NewSyncHandler is an initializer for a SpeechHandler
+func NewSyncHandler(privateKeyPath string) (*SyncHandler, error) {
 	// verify the params
 	if tupuerror.StringIsEmpty(privateKeyPath) {
 		return nil, fmt.Errorf("%s, %s", tupuerror.ErrorParamsIsEmpty, tupuerror.GetCallerFuncName())
 	}
 
 	var (
-		err     error
-		hdler   *tupucontrol.Handler
-		spHdler = new(ShortSpeechHandler)
+		err       error
+		syncHdler = new(SyncHandler)
 	)
 
-	if len(url) == 0 {
-		url = SpeechAPIURL
-	}
-
-	if hdler, err = tupucontrol.NewHandlerWithURL(privateKeyPath, url); err != nil {
+	if syncHdler.hdler, err = tupucontrol.NewHandlerWithURL(privateKeyPath, SpeechSyncAPIURL); err != nil {
 		return nil, err
 	}
 
-	spHdler.hdler = hdler
-	return spHdler, nil
+	return syncHdler, nil
+}
+
+// SetServerURL provide set request server URL attribute
+func (syncHdler *SyncHandler) SetServerURL(url string) {
+	syncHdler.hdler.SetServerURL(url)
 }
 
 // PerformWithBinary is the major method for initiating a speech recognition request, Params binaryData key is fileName(include filetype, example "1.flv"), value is binary data
-func (spHdler *ShortSpeechHandler) PerformWithBinary(secretID string, binaryData map[string][]byte, timeout int) (result string, statusCode int, err error) {
+func (syncHdler *SyncHandler) PerformWithBinary(secretID string, binaryData map[string][]byte) (result string, statusCode int, err error) {
 
 	// verify the params
 	if tupuerror.StringIsEmpty(secretID) || tupuerror.PtrIsNil(binaryData) {
@@ -53,11 +53,9 @@ func (spHdler *ShortSpeechHandler) PerformWithBinary(secretID string, binaryData
 		return
 	}
 
-	spHdler.hdler.SetTimeout(timeout)
-
 	var (
 		dataInfoSlice = make([]*tupumodel.DataInfo, 0)
-		shortSpch     *ShortSpeech
+		speechSync    *SpeechSync
 	)
 
 	// wrapper data to DataInfo
@@ -70,15 +68,15 @@ func (spHdler *ShortSpeechHandler) PerformWithBinary(secretID string, binaryData
 			return
 		}
 
-		shortSpch = NewBinarySpeech(buf, fileName)
-		dataInfoSlice = append(dataInfoSlice, shortSpch.dataInfo)
+		speechSync = NewBinarySpeech(buf, fileName)
+		dataInfoSlice = append(dataInfoSlice, speechSync.dataInfo)
 	}
 	// Do request
-	return spHdler.hdler.Recognize(secretID, dataInfoSlice)
+	return syncHdler.hdler.Recognize(secretID, dataInfoSlice)
 }
 
 // PerformWithURL is a shortcut for initiating a speech recognition request with URLs
-func (spHdler *ShortSpeechHandler) PerformWithURL(secretID string, URLs []string, timeout int) (result string, statusCode int, err error) {
+func (syncHdler *SyncHandler) PerformWithURL(secretID string, URLs []string) (result string, statusCode int, err error) {
 	// verify the params
 	if tupuerror.StringIsEmpty(secretID) || tupuerror.PtrIsNil(URLs) {
 		statusCode = 400
@@ -88,23 +86,21 @@ func (spHdler *ShortSpeechHandler) PerformWithURL(secretID string, URLs []string
 
 	var (
 		dataInfoSlice = make([]*tupumodel.DataInfo, 0)
-		shortSpch     *ShortSpeech
+		speechSync    *SpeechSync
 	)
-
-	spHdler.hdler.SetTimeout(timeout)
 
 	// wrapper data to DataInfo
 	for _, url := range URLs {
-		shortSpch = NewRemoteSpeech(url)
-		dataInfoSlice = append(dataInfoSlice, shortSpch.dataInfo)
+		speechSync = NewRemoteSpeech(url)
+		dataInfoSlice = append(dataInfoSlice, speechSync.dataInfo)
 	}
 
 	// Do request
-	return spHdler.hdler.Recognize(secretID, dataInfoSlice)
+	return syncHdler.hdler.Recognize(secretID, dataInfoSlice)
 }
 
 // PerformWithPath is a shortcut for initiating a speech recognition request with paths
-func (spHdler *ShortSpeechHandler) PerformWithPath(secretID string, speechPaths []string, timeout int) (result string, statusCode int, err error) {
+func (syncHdler *SyncHandler) PerformWithPath(secretID string, speechPaths []string) (result string, statusCode int, err error) {
 	// verify the params
 	if tupuerror.StringIsEmpty(secretID) || tupuerror.PtrIsNil(speechPaths) {
 		statusCode = 400
@@ -114,19 +110,17 @@ func (spHdler *ShortSpeechHandler) PerformWithPath(secretID string, speechPaths 
 
 	var (
 		dataInfoSlice = make([]*tupumodel.DataInfo, 0)
-		shortSpch     *ShortSpeech
+		speechSync    *SpeechSync
 	)
-
-	spHdler.hdler.SetTimeout(timeout)
 
 	// wrapper data to DataInfo
 	for _, path := range speechPaths {
-		shortSpch = NewLocalSpeech(path)
-		dataInfoSlice = append(dataInfoSlice, shortSpch.dataInfo)
+		speechSync = NewLocalSpeech(path)
+		dataInfoSlice = append(dataInfoSlice, speechSync.dataInfo)
 	}
 
 	// Do request
-	return spHdler.hdler.Recognize(secretID, dataInfoSlice)
+	return syncHdler.hdler.Recognize(secretID, dataInfoSlice)
 }
 
 func illegalSpeechFile(fileExtend string) bool {
@@ -136,4 +130,9 @@ func illegalSpeechFile(fileExtend string) bool {
 	default:
 		return true
 	}
+}
+
+// SetTimeout provide properties to set request ttl
+func (syncHdler *SyncHandler) SetTimeout(timeout int) {
+	syncHdler.hdler.SetTimeout(timeout)
 }
