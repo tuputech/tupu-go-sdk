@@ -1,19 +1,19 @@
-// Package shortsync provide interface of TUPU speech recognition
-package shortsync
+// Package speechsync provide interface of TUPU speech recognition
+package speechsync
 
 import (
 	tupuerror "github.com/tuputech/tupu-go-sdk/lib/errorlib"
 	tupumodel "github.com/tuputech/tupu-go-sdk/lib/model"
 )
 
-// ShortSpeech extends recognition.DataInfo to descripton speech file
-type ShortSpeech struct {
+// SpeechSync extends recognition.DataInfo to descripton speech file
+type SpeechSync struct {
 	dataInfo *tupumodel.DataInfo
 }
 
-func newShortSpeech() *ShortSpeech {
+func newSpeechSync() *SpeechSync {
 	var (
-		speech   = new(ShortSpeech)
+		speech   = new(SpeechSync)
 		dataInfo = new(tupumodel.DataInfo)
 	)
 	dataInfo.SetFileType("speech")
@@ -22,39 +22,39 @@ func newShortSpeech() *ShortSpeech {
 }
 
 // NewRemoteSpeech is an initializer for create Speech resource with url
-func NewRemoteSpeech(url string) *ShortSpeech {
+func NewRemoteSpeech(url string) *SpeechSync {
 
 	// verify the params
 	if tupuerror.StringIsEmpty(url) {
 		return nil
 	}
-	speech := newShortSpeech()
+	speech := newSpeechSync()
 	speech.dataInfo.SetRemoteInfo(url)
 	return speech
 }
 
 // NewLocalSpeech is an initializer for create Speech resource with local file path
-func NewLocalSpeech(path string) *ShortSpeech {
+func NewLocalSpeech(path string) *SpeechSync {
 
 	// verify the params
 	if tupuerror.StringIsEmpty(path) {
 		return nil
 	}
 
-	speech := newShortSpeech()
+	speech := newSpeechSync()
 	speech.dataInfo.SetPath(path)
 
 	return speech
 }
 
 // NewBinarySpeech is an initializer for create Speech resource with binary content
-func NewBinarySpeech(buf []byte, fileName string) *ShortSpeech {
+func NewBinarySpeech(buf []byte, fileName string) *SpeechSync {
 	// verify the params
 	if tupuerror.PtrIsNil(buf) || tupuerror.StringIsEmpty(fileName) {
 		return nil
 	}
 
-	speech := newShortSpeech()
+	speech := newSpeechSync()
 	speech.dataInfo.SetBuf(buf)
 	speech.dataInfo.SetFileName(fileName)
 
@@ -62,6 +62,6 @@ func NewBinarySpeech(buf []byte, fileName string) *ShortSpeech {
 }
 
 // ClearBuffer is an helper to clear speech binary content
-func (speech *ShortSpeech) ClearBuffer() {
+func (speech *SpeechSync) ClearBuffer() {
 	speech.dataInfo.ClearBuffer()
 }

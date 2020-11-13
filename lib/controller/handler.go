@@ -55,11 +55,38 @@ type Handler struct {
 	Client *http.Client
 }
 
+// NewHandlerWithURL is also an initializer for a Handler
+func NewHandlerWithURL(privateKeyPath, url string) (hdler *Handler, e error) {
+	// verify legatity params
+	if tupuerrorlib.StringIsEmpty(privateKeyPath, url) {
+		return nil, fmt.Errorf("%s, %s", tupuerrorlib.ErrorParamsIsEmpty, tupuerrorlib.GetCallerFuncName())
+	}
+	hdler = new(Handler)
+
+	// init other default proprety
+	hdler.initHandler()
+	hdler.apiURL = RootAPIURL
+	hdler.apiURL = url
+
+	if hdler.verifier, e = tuputools.LoadTupuPublicKey(); e != nil {
+		return nil, e
+	}
+	if hdler.signer, e = tuputools.LoadPrivateKey(privateKeyPath); e != nil {
+		return nil, e
+	}
+	return hdler, nil
+}
+
 // SetTimeout is the Handler method to setting the UserAgent attribute
 func (hdler *Handler) SetTimeout(timeout int) {
 	if timeout != 0 {
 		hdler.Timeout = fmt.Sprintf("%d", timeout)
 	}
+}
+
+// SetServerURL provide setting server URL attribute
+func (hdler *Handler) SetServerURL(url string) {
+	hdler.apiURL = url
 }
 
 // SetContentType is the Handler method to setting the UserAgent attribute
@@ -84,28 +111,6 @@ func (hdler *Handler) SetUID(uid string) {
 		return
 	}
 	hdler.UID = uid
-}
-
-// NewHandlerWithURL is also an initializer for a Handler
-func NewHandlerWithURL(privateKeyPath, url string) (hdler *Handler, e error) {
-	// verify legatity params
-	if tupuerrorlib.StringIsEmpty(privateKeyPath, url) {
-		return nil, fmt.Errorf("%s, %s", tupuerrorlib.ErrorParamsIsEmpty, tupuerrorlib.GetCallerFuncName())
-	}
-	hdler = new(Handler)
-
-	// init other default proprety
-	hdler.initHandler()
-	hdler.apiURL = RootAPIURL
-	hdler.apiURL = url
-
-	if hdler.verifier, e = tuputools.LoadTupuPublicKey(); e != nil {
-		return nil, e
-	}
-	if hdler.signer, e = tuputools.LoadPrivateKey(privateKeyPath); e != nil {
-		return nil, e
-	}
-	return hdler, nil
 }
 
 func (hdler *Handler) initHandler() {
@@ -262,7 +267,7 @@ func (hdler *Handler) verify(message []byte, sig string) error {
 func (hdler *Handler) request(url *string, params *map[string]string, dataInfoSlice []*tupumodel.DataInfo) (req *http.Request, e error) {
 	// verify legatity params
 	if tupuerrorlib.PtrIsNil(url, params, dataInfoSlice) {
-		return nil, fmt.Errorf("%s, %s", tupuerrorlib.ErrorParamsIsEmpty, tupuerrorlib.GetCallerFuncName)
+		return nil, fmt.Errorf("%s, %s", tupuerrorlib.ErrorParamsIsEmpty, tupuerrorlib.GetCallerFuncName())
 	}
 
 	var (

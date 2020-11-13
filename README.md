@@ -5,6 +5,9 @@ Golang SDK for TUPU visual recognition service (v1.6.1)
 <https://www.tuputech.com>
 
 ## Changelogs
+#### v1.7.1
+- refactor speech sdk
+
 #### v1.7
 - add speech method and lib
 
@@ -36,8 +39,8 @@ Golang SDK for TUPU visual recognition service (v1.6.1)
 ## Example
 
 1. [Image recognition interface example](./example/image.go)  
-2. [shortSpeech recognition interface example](./example/short-speech.go)  
-3. [longSpeech recognition interface example](./example/long-speech.go)  
+2. [Speech Sync recognition interface example](./example/speechSync.go)  
+3. [Speech Async recognition interface example](./example/speechAsync.go)  
 
 ## Image Recognition API
 
@@ -102,18 +105,18 @@ There are three functions you can use to construct an `Image` object：
 
 ## Speech Recognition API
 
-> Contains `Package shortsync` and `Package longasync`
+> Contains `Package speechsync` and `Package speechasync`
 
-### short speech API
+### Speech Sync API
 
-> import "github.com/tuputech/recognition/speech/shortsync"
+> import "github.com/tuputech/recognition/speech/speechsync"
 
 ---
 
 #### func <font color=#71ABD5>PerforWithBinary</font>
 
 ```go
-func (spHdler *ShortSpeechHandler) PerformWithBinary(secretID string, binaryData map[string][]byte, timeout int) (result string, statusCode int, err error)
+func (syncHdler *SyncHandler) PerformWithBinary(secretID string, binaryData map[string][]byte) (result string, statusCode int, err error)
 ```
 
 **PerformWithBinary** return a json `string` and a `int` express response, a `error` identifying success of failure
@@ -124,14 +127,13 @@ Identification with binaries is valid, but binaries need to be built with the Ma
 
 - ***secretID***: secret-id for recognition task
 - ***binaryData***: map type, key means file name, value means binary data
-- ***timeout***: Set request timeout, if value equal 0, will using default timeout(30s)
 
 ---
 
 #### func <font color=#71ABD5>PerforWithPath</font>
 
 ```go
-func (spHdler *ShortSpeechHandler) PerformWithPath(secretID string, speechPaths []string, timeout int) (result string, statusCode int, err error)
+func (syncHdler *SyncHandler) PerformWithPath(secretID string, speechPaths []string) (result string, statusCode int, err error)  
 ```
 
 **PerformWithPath** return a json `string` and a `int` express response, a `error` identifying success of failure
@@ -141,15 +143,14 @@ It is useful for the recognition function using local speech file
 > **Params  Descrition**
 
 - ***secretID***: secret-id for recognition task
-- ***speechPaths***: local short speech paths
-- ***timeout***: Set request timeout, if value equal 0, will using default timeout(30s)
+- ***speechPaths***: local speech paths
 
 -----
 
 #### func <font color=#71ABD5>PerforWithURL</font>
 
 ```go
-func (spHdler *ShortSpeechHandler) PerformWithURL(secretID string, URLs []string, timeout int) (result string, statusCode int, err error)
+func (syncHdler *SyncHandler) PerformWithURL(secretID string, URLs []string) (result string, statusCode int, err error)  
 ```
 
 **PerformWithURL** return a json `string` and a `int` express response, a `error` identifying success of failure
@@ -159,27 +160,35 @@ It is useful for the recognition function using remote speech file
 > **Params  Descrition**
 
 - ***secretID***: secret-id for recognition task
-- ***URLs***: remote short speech address
-- ***timeout***: Set request timeout, if value equal 0, will using default timeout(30s)
+- ***URLs***: remote  speech address
 
 ---
 
-### long speech API
+### Speech Async API
 
-> import "github.com/tuputech/recognition/speech/longasync"
+> import "github.com/tuputech/recognition/speech/speechasync"
 
 ---
 
 #### func <font color=#71ABD5>Perform</font>
 
 ```go
-func (spHdler *LongSpeechHandler) Perform(secretID string, longspch *LongSpeech, timeout int) (result string, statusCode int, err error)
+func (asyncHdler *AsyncHandler) Perform(secretID string, speechAsync *SpeechAsync) (result string, statusCode int, err error)  
 ```
 
+**Perform** return a json `string` and a `int` express response, a `error` identifying success of failure
+
+> **Params  Descrition**
+
+- ***secretID***: secret-id for recognition task
+- ***speechAsync***: SpeechAsync struct wrapper async speech message for request
+
+Only remote files are supported, and request information is created via structure `SpeechAsync`
+
  ```go
-// LongSpeech is a structure that encapsulates long speech messages
-type LongSpeech struct {
-	// FileRemoteURL represents the address of the long voice, can't be empty
+// SpeechAsync is a structure that encapsulates async speech messages
+type SpeechAsync struct {
+	// FileRemoteURL represents the address of the big voice, can't be empty
 	FileRemoteURL string 
 	// CallbackUrl represents the address of the callback result, cant' be empty
 	CallbackURL string 
@@ -193,16 +202,6 @@ type LongSpeech struct {
 	ForumID string
 }
  ```
-
-**Perform** return a json `string` and a `int` express response, a `error` identifying success of failure
-
-Only remote files are supported, and request information is created via structure `LongSpeech`
-
-> **Params  Descrition**
-
-- ***secretID***: secret-id for recognition task
-- ***longspch***: LongSpeech struct wrapper long speech message for request
-- ***timeout***: Set request timeout, if value equal 0, will using default timeout(30s)
 
 ---
 

@@ -3,69 +3,73 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
-	"path/filepath"
 	"time"
 
 	"github.com/bitly/go-simplejson"
-	spch "github.com/tuputech/tupu-go-sdk/recognition/speech/shortsync"
+	"github.com/tuputech/tupu-go-sdk/recognition/speech/speechsync"
 )
 
 func main() {
 
 	// step1. get your secretID
 	secretID := "your secretID"
-	privateKeyPath := "rsa_private_key.pem"
-	serverURL := ""
-	// step2. create speech handler
-	speechHandler, err := spch.NewShortSpeechHandler(privateKeyPath, serverURL)
+	privateKeyPath := "your rsa_private_key path"
+
+	// step2. create speech sync handler
+	syncHandler, err := speechsync.NewSyncHandler(privateKeyPath)
 	if err != nil {
 		fmt.Println("-------- ERROR ----------")
 		return
 	}
 
-	// step3. get recognition result
+	// step3. You can choose the request timeout limited, if not, use the default 30s
+	// syncHandler.SetTimeout(2)
+
+	// step4. get recognition result
+
 	// test demo1
-	testSpeechAPIWithURL(secretID, speechHandler)
+	testSpeechAPIWithURL(secretID, syncHandler)
 
 	// test demo2
-	testSpeechAPIWithPath(secretID, speechHandler)
+	testSpeechAPIWithPath(secretID, syncHandler)
 
 	// test demo3
-	testSpeechAPIWithBinary(secretID, speechHandler)
+	testSpeechAPIWithBinary(secretID, syncHandler)
 }
 
-func testSpeechAPIWithBinary(secretID string, speechHandler *spch.ShortSpeechHandler) {
+func testSpeechAPIWithBinary(secretID string, speechHandler *speechsync.SyncHandler) {
 	//Using local file or binary data
-	filePath := "your speech filePath"
+	filePath := "your speech file path"
 	fileBytes, e2 := ioutil.ReadFile(filePath)
 	if e2 != nil {
 		fmt.Printf("Could not load voice: %v", e2)
 		return
 	}
-	// key is your fileName, value is the speech binary data
+	// key is your fileName, value is your speech binary data, Extension only supports amr, mp3, wmv, wav, flv
 	speechSlice := map[string][]byte{
-		filepath.Base(filePath): fileBytes,
+		"test.amr": fileBytes,
 	}
 
-	printResult(speechHandler.PerformWithBinary(secretID, speechSlice, 0))
+	printResult(speechHandler.PerformWithBinary(secretID, speechSlice))
 }
 
-func testSpeechAPIWithPath(secretID string, speechHandler *spch.ShortSpeechHandler) {
+func testSpeechAPIWithPath(secretID string, speechHandler *speechsync.SyncHandler) {
 	// step1. get speech file path
 	speechPaths := []string{
-		"your speech filePath",
+		"your speech file path",
 	}
 
 	// step2. get result of speech recognition API
-	printResult(speechHandler.PerformWithPath(secretID, speechPaths, 0))
+	printResult(speechHandler.PerformWithPath(secretID, speechPaths))
 }
 
-func testSpeechAPIWithURL(secretID string, speechHandler *spch.ShortSpeechHandler) {
+func testSpeechAPIWithURL(secretID string, speechHandler *speechsync.SyncHandler) {
 	// step1. get speech file url
 	speechURLs := []string{
 		"your speech url",
 	}
-	printResult(speechHandler.PerformWithURL(secretID, speechURLs, 0))
+	result, statusCode, err := speechHandler.PerformWithURL(secretID, speechURLs)
+	printResult(result, statusCode, err)
 }
 
 func printResult(result string, statusCode int, err error) {
