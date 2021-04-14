@@ -17,8 +17,6 @@ func main() {
 		fmt.Printf("Failed: %v\n", e)
 		return
 	}
-	//Optional Step: set identity of sub-user if necessary
-	handler.UID = "bucket-of-jackbauer"
 
 	//Optional Step: using http-client created by your own
 	// tr := &http.Transport{
@@ -31,10 +29,17 @@ func main() {
 	url1 := "your speech url1"
 	url2 := "your speech url2"
 	images1 := []string{url1, url2}
+
 	//No tag for images
-	printResult(handler.PerformWithURL(secretID, images1, nil))
+	printResult(handler.PerformWithURL(secretID, images1, nil, nil))
+
 	//Number of tags less than number of images, the rest images will use the last tag
-	printResult(handler.PerformWithURL(secretID, images1, []string{"Remote Image"}))
+	tags := []string{"Remote Image"}
+	printResult(handler.PerformWithURL(secretID, images1, tags, nil))
+
+	// run by appoint task
+	tasks := []string{"54bcfc6c329af61034f7c2fc"}
+	printResult(handler.PerformWithURL(secretID, images1, nil, tasks))
 
 	//Using local file or binary data
 	fileBytes, e2 := ioutil.ReadFile("your speech filePath")
@@ -45,7 +50,7 @@ func main() {
 	imgBinary := rcn.NewBinaryImage(fileBytes, "1.jpg")
 	defer imgBinary.ClearBuffer()
 	images2 := []*rcn.Image{rcn.NewLocalImage("your speech filePath"), imgBinary}
-	printResult(handler.Perform(secretID, images2, []string{"Local Image", "Using Buffer"}))
+	printResult(handler.Perform(secretID, images2, []string{"Local Image", "Using Buffer"}, nil))
 }
 
 func printResult(result string, statusCode int, e error) {
