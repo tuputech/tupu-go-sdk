@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	secretID := "5fc867d7cfac40001ee8cb78"
+	secretID := "Your SecretID"
 	handler, e := rcn.NewHandler("rsa_private_key.pem")
 	if e != nil {
 		fmt.Printf("Failed: %v\n", e)
