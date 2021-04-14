@@ -16,6 +16,12 @@ var (
 	ImageRecognitionURL   = "http://api.open.tuputech.com/v3/recognition/"
 )
 
+type config struct {
+	tags  []string
+	tasks []string
+}
+type options func(*config)
+
 // Handler is a client-side helper to access TUPU visual recognition service
 type Handler struct {
 	hdler *tupucontrol.Handler
@@ -48,22 +54,42 @@ func NewHandlerWithURL(privateKeyPath, url string) (h *Handler, e error) {
 	return h, nil
 }
 
+func (h *Handler) WithTags(tags []string) options {
+	return func(c *config) {
+		c.tags = tags
+	}
+}
+
+func (h *Handler) WithTasks(tasks []string) options {
+	return func(c *config) {
+		c.tasks = tasks
+	}
+}
+
 // PerformWithURL is a shortcut for initiating a recognition request with URLs of images
-func (h *Handler) PerformWithURL(secretID string, imageURLs []string, tags []string, tasks []string) (result string, statusCode int, e error) {
+func (h *Handler) PerformWithURL(secretID string, imageURLs []string, options ...func(*config)) (result string, statusCode int, e error) {
 	var images []*Image
 	for _, val := range imageURLs {
 		images = append(images, NewRemoteImage(val))
 	}
-	return h.Perform(secretID, images, tags, tasks)
+	var c config
+	for _, fn := range options {
+		fn(&c)
+	}
+	return h.Perform(secretID, images, c.tags, c.tasks)
 }
 
 // PerformWithPath is a shortcut for initiating a recognition request with paths of images
-func (h *Handler) PerformWithPath(secretID string, imagePaths []string, tags []string, tasks []string) (result string, statusCode int, e error) {
+func (h *Handler) PerformWithPath(secretID string, imagePaths []string, options ...func(*config)) (result string, statusCode int, e error) {
 	var images []*Image
 	for _, val := range imagePaths {
 		images = append(images, NewLocalImage(val))
 	}
-	return h.Perform(secretID, images, tags, tasks)
+	var c config
+	for _, fn := range options {
+		fn(&c)
+	}
+	return h.Perform(secretID, images, c.tags, c.tasks)
 }
 
 // Perform is the major method for initiating a recognition request
