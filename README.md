@@ -5,7 +5,8 @@ Golang SDK for TUPU visual recognition service (v1.6.1)
 <https://www.tuputech.com>
 
 ## Changelogs
-
+#### v1.7.3
+- image api with function options
 #### v1.7.2
 - add task param to image recognition
 #### v1.7.1
