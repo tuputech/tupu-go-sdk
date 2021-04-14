@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	secretID := "your secretID"
+	secretID := "Your SecretID"
 	handler, e := rcn.NewHandler("rsa_private_key.pem")
 	if e != nil {
 		fmt.Printf("Failed: %v\n", e)
@@ -26,22 +26,27 @@ func main() {
 	// }
 	// handler.Client = &http.Client{Transport: tr}
 
-	url1 := "your speech url1"
-	url2 := "your speech url2"
-	images1 := []string{url1, url2}
+	images1 := []string{"your image url"}
 
-	//No tag for images
-	printResult(handler.PerformWithURL(secretID, images1, nil, nil))
+	// just for images
+	printResult(handler.PerformWithURL(secretID, images1))
 
-	//Number of tags less than number of images, the rest images will use the last tag
-	tags := []string{"Remote Image"}
-	printResult(handler.PerformWithURL(secretID, images1, tags, nil))
+	// Number of tags less than number of images, the rest images will use the last tag
+	tags := []string{"image tag"}
+	printResult(handler.PerformWithURL(secretID, images1, handler.WithTags(tags)))
 
 	// run by appoint task
 	tasks := []string{"54bcfc6c329af61034f7c2fc"}
-	printResult(handler.PerformWithURL(secretID, images1, nil, tasks))
+	printResult(handler.PerformWithURL(secretID, images1, handler.WithTasks(tasks)))
 
-	//Using local file or binary data
+	// with tag and run by appoint task
+	printResult(handler.PerformWithURL(secretID, images1, handler.WithTasks(tasks), handler.WithTags(tags)))
+
+	// Using local file path
+	filepaths := []string{"your filepath"}
+	printResult(handler.PerformWithPath(secretID, filepaths, handler.WithTags(tags)))
+
+	// Using local file or binary data
 	fileBytes, e2 := ioutil.ReadFile("your speech filePath")
 	if e2 != nil {
 		fmt.Printf("Could not load image: %v", e2)
