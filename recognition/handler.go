@@ -49,25 +49,25 @@ func NewHandlerWithURL(privateKeyPath, url string) (h *Handler, e error) {
 }
 
 // PerformWithURL is a shortcut for initiating a recognition request with URLs of images
-func (h *Handler) PerformWithURL(secretID string, imageURLs []string, tags []string) (result string, statusCode int, e error) {
+func (h *Handler) PerformWithURL(secretID string, imageURLs []string, tags []string, tasks []string) (result string, statusCode int, e error) {
 	var images []*Image
 	for _, val := range imageURLs {
 		images = append(images, NewRemoteImage(val))
 	}
-	return h.Perform(secretID, images, tags)
+	return h.Perform(secretID, images, tags, tasks)
 }
 
 // PerformWithPath is a shortcut for initiating a recognition request with paths of images
-func (h *Handler) PerformWithPath(secretID string, imagePaths []string, tags []string) (result string, statusCode int, e error) {
+func (h *Handler) PerformWithPath(secretID string, imagePaths []string, tags []string, tasks []string) (result string, statusCode int, e error) {
 	var images []*Image
 	for _, val := range imagePaths {
 		images = append(images, NewLocalImage(val))
 	}
-	return h.Perform(secretID, images, tags)
+	return h.Perform(secretID, images, tags, tasks)
 }
 
 // Perform is the major method for initiating a recognition request
-func (h *Handler) Perform(secretID string, images []*Image, tags []string) (result string, statusCode int, e error) {
+func (h *Handler) Perform(secretID string, images []*Image, tags []string, tasks []string) (result string, statusCode int, e error) {
 	// verify legatity params
 	if tupuerror.PtrIsNil(images) || tupuerror.StringIsEmpty(secretID) {
 		e = fmt.Errorf("%s, %s", tupuerror.ErrorParamsIsEmpty, tupuerror.GetCallerFuncName())
@@ -93,6 +93,6 @@ func (h *Handler) Perform(secretID string, images []*Image, tags []string) (resu
 		dataInfoSlice = append(dataInfoSlice, images[i].dataInfo)
 	}
 
-	return h.hdler.Recognize(secretID, dataInfoSlice)
+	return h.hdler.Recognize(secretID, dataInfoSlice, tasks)
 
 }

@@ -173,7 +173,7 @@ func (hdler *Handler) RecognizeWithJSON(jsonStr, secretID string) (result string
 }
 
 // Recognize is the major method for initiating a recognition request
-func (hdler *Handler) Recognize(secretID string, dataInfoSlice []*tupumodel.DataInfo) (result string, statusCode int, e error) {
+func (hdler *Handler) Recognize(secretID string, dataInfoSlice []*tupumodel.DataInfo, tasks []string) (result string, statusCode int, e error) {
 	// Only 10 data can be carried in one request
 	if len(dataInfoSlice) > 10 || tupuerrorlib.StringIsEmpty(secretID) {
 		result = ""
@@ -193,7 +193,7 @@ func (hdler *Handler) Recognize(secretID string, dataInfoSlice []*tupumodel.Data
 		return
 	}
 
-	if req, e = hdler.request(&url, &params, dataInfoSlice); e != nil {
+	if req, e = hdler.request(&url, &params, dataInfoSlice, tasks); e != nil {
 		//log.Fatal(e)
 		return
 	}
@@ -264,7 +264,7 @@ func (hdler *Handler) verify(message []byte, sig string) error {
 	return nil
 }
 
-func (hdler *Handler) request(url *string, params *map[string]string, dataInfoSlice []*tupumodel.DataInfo) (req *http.Request, e error) {
+func (hdler *Handler) request(url *string, params *map[string]string, dataInfoSlice []*tupumodel.DataInfo, tasks []string) (req *http.Request, e error) {
 	// verify legatity params
 	if tupuerrorlib.PtrIsNil(url, params, dataInfoSlice) {
 		return nil, fmt.Errorf("%s, %s", tupuerrorlib.ErrorParamsIsEmpty, tupuerrorlib.GetCallerFuncName())
@@ -277,6 +277,10 @@ func (hdler *Handler) request(url *string, params *map[string]string, dataInfoSl
 
 	for key, val := range *params {
 		_ = writer.WriteField(key, val)
+	}
+
+	for _, task := range tasks {
+		_ = writer.WriteField("task", task)
 	}
 
 	// write binary data to request body
