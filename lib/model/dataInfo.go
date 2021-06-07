@@ -22,6 +22,8 @@ type DataInfo struct {
 	OtherMsg map[string]string
 }
 
+type OptFunc func(*DataInfo)
+
 // SetOtherMsg is setting function for DataInfo object
 func (dataInfo *DataInfo) SetOtherMsg(msg map[string]string) {
 	if tupuerrorlib.PtrIsNil(msg) {
@@ -107,4 +109,38 @@ func NewBinaryDataInfo(buf []byte, filename string) *DataInfo {
 // ClearBuffer is an helper to set property tag of DataInfo and return DataInfo itself
 func (dataInfo *DataInfo) ClearBuffer() {
 	dataInfo.Buf = nil
+}
+
+// ClearData is an helper to reset DataInfo struct
+func (dtInfo *DataInfo) ClearData() {
+	dtInfo.Buf = nil
+	dtInfo.OtherMsg = nil
+	dtInfo.Path = ""
+	dtInfo.FileName = ""
+	dtInfo.RemoteInfo = ""
+}
+
+func WithBinary(buf []byte, filename string) OptFunc {
+	return func(di *DataInfo) {
+		di.Buf = bytes.NewBuffer(buf)
+		di.FileName = filename
+	}
+}
+
+func WithLocalPath(path string) OptFunc {
+	return func(di *DataInfo) {
+		di.Path = path
+	}
+}
+
+func WithFileURL(uri string) OptFunc {
+	return func(di *DataInfo) {
+		di.RemoteInfo = uri
+	}
+}
+
+func WithFileType(fileType string) OptFunc {
+	return func(di *DataInfo) {
+		di.FileType = fileType
+	}
 }

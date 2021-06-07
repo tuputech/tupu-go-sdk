@@ -2,7 +2,7 @@ package speechsync
 
 import (
 	"fmt"
-	"path"
+	"sync"
 
 	tupucontrol "github.com/tuputech/tupu-go-sdk/lib/controller"
 	tupuerror "github.com/tuputech/tupu-go-sdk/lib/errorlib"
@@ -16,7 +16,8 @@ const (
 
 // SyncHandler is a client-side helper to access TUPU speech recognition service
 type SyncHandler struct {
-	hdler *tupucontrol.Handler
+	hdler    *tupucontrol.Handler
+	syncPool sync.Pool
 }
 
 // NewSyncHandler is an initializer for a SpeechHandler
@@ -35,6 +36,10 @@ func NewSyncHandler(privateKeyPath string) (*SyncHandler, error) {
 		return nil, err
 	}
 
+	syncHdler.syncPool.New = func() interface{} {
+		return newSpeechSync()
+	}
+
 	return syncHdler, nil
 }
 
@@ -44,7 +49,7 @@ func (syncHdler *SyncHandler) SetServerURL(url string) {
 }
 
 // PerformWithBinary is the major method for initiating a speech recognition request, Params binaryData key is fileName(include filetype, example "1.flv"), value is binary data
-func (syncHdler *SyncHandler) PerformWithBinary(secretID string, binaryData map[string][]byte) (result string, statusCode int, err error) {
+func (syncHdler *SyncHandler) PerformWithBinary(secretID string, binaryData map[string][]byte, tasks ...string) (result string, statusCode int, err error) {
 
 	// verify the params
 	if tupuerror.StringIsEmpty(secretID) || tupuerror.PtrIsNil(binaryData) {
@@ -54,29 +59,26 @@ func (syncHdler *SyncHandler) PerformWithBinary(secretID string, binaryData map[
 	}
 
 	var (
-		dataInfoSlice = make([]*tupumodel.DataInfo, 0)
+		dataInfoSlice = make([]*tupumodel.DataInfo, len(binaryData)+1)
+		index         = 0
 		speechSync    *SpeechSync
 	)
 
 	// wrapper data to DataInfo
 	for fileName, buf := range binaryData {
-		// verify the file extend
-		extend := path.Ext(fileName)
-		if illegalSpeechFile(extend) {
-			err = fmt.Errorf("illegal speech file, only supports wav, wmv, mp3, flv, amr, your file is %v", extend)
-			statusCode = 400
-			return
-		}
-
-		speechSync = NewBinarySpeech(buf, fileName)
-		dataInfoSlice = append(dataInfoSlice, speechSync.dataInfo)
+		speechSync = syncHdler.syncPool.Get().(*SpeechSync)
+		defer syncHdler.recycleDataObj(speechSync)
+		// set struct of dataInfo value
+		speechSync.InitConf(tupumodel.WithBinary(buf, fileName))
+		dataInfoSlice[index] = speechSync.dataInfo
+		index++
 	}
 	// Do request
-	return syncHdler.hdler.Recognize(secretID, dataInfoSlice)
+	return syncHdler.hdler.Recognize(secretID, dataInfoSlice, tasks)
 }
 
 // PerformWithURL is a shortcut for initiating a speech recognition request with URLs
-func (syncHdler *SyncHandler) PerformWithURL(secretID string, URLs []string) (result string, statusCode int, err error) {
+func (syncHdler *SyncHandler) PerformWithURL(secretID string, URLs []string, tasks ...string) (result string, statusCode int, err error) {
 	// verify the params
 	if tupuerror.StringIsEmpty(secretID) || tupuerror.PtrIsNil(URLs) {
 		statusCode = 400
@@ -85,22 +87,26 @@ func (syncHdler *SyncHandler) PerformWithURL(secretID string, URLs []string) (re
 	}
 
 	var (
-		dataInfoSlice = make([]*tupumodel.DataInfo, 0)
+		dataInfoSlice = make([]*tupumodel.DataInfo, len(URLs)+1)
 		speechSync    *SpeechSync
 	)
 
 	// wrapper data to DataInfo
-	for _, url := range URLs {
-		speechSync = NewRemoteSpeech(url)
-		dataInfoSlice = append(dataInfoSlice, speechSync.dataInfo)
+	for index, url := range URLs {
+		speechSync = syncHdler.syncPool.Get().(*SpeechSync)
+		// reset DataInfo, and put to pool
+		defer syncHdler.recycleDataObj(speechSync)
+		speechSync.InitConf(tupumodel.WithFileURL(url))
+
+		dataInfoSlice[index] = speechSync.dataInfo
 	}
 
 	// Do request
-	return syncHdler.hdler.Recognize(secretID, dataInfoSlice)
+	return syncHdler.hdler.Recognize(secretID, dataInfoSlice, tasks)
 }
 
 // PerformWithPath is a shortcut for initiating a speech recognition request with paths
-func (syncHdler *SyncHandler) PerformWithPath(secretID string, speechPaths []string) (result string, statusCode int, err error) {
+func (syncHdler *SyncHandler) PerformWithPath(secretID string, speechPaths []string, tasks ...string) (result string, statusCode int, err error) {
 	// verify the params
 	if tupuerror.StringIsEmpty(secretID) || tupuerror.PtrIsNil(speechPaths) {
 		statusCode = 400
@@ -109,18 +115,23 @@ func (syncHdler *SyncHandler) PerformWithPath(secretID string, speechPaths []str
 	}
 
 	var (
-		dataInfoSlice = make([]*tupumodel.DataInfo, 0)
+		dataInfoSlice = make([]*tupumodel.DataInfo, len(speechPaths)+1)
 		speechSync    *SpeechSync
 	)
 
 	// wrapper data to DataInfo
-	for _, path := range speechPaths {
-		speechSync = NewLocalSpeech(path)
-		dataInfoSlice = append(dataInfoSlice, speechSync.dataInfo)
+	for index, path := range speechPaths {
+		// malloc and init
+		speechSync = syncHdler.syncPool.Get().(*SpeechSync)
+		// reset DataInfo, and put to pool
+		defer syncHdler.recycleDataObj(speechSync)
+		speechSync.InitConf(tupumodel.WithLocalPath(path))
+
+		dataInfoSlice[index] = speechSync.dataInfo
 	}
 
 	// Do request
-	return syncHdler.hdler.Recognize(secretID, dataInfoSlice)
+	return syncHdler.hdler.Recognize(secretID, dataInfoSlice, tasks)
 }
 
 func illegalSpeechFile(fileExtend string) bool {
@@ -130,6 +141,11 @@ func illegalSpeechFile(fileExtend string) bool {
 	default:
 		return true
 	}
+}
+
+func (syncHdler *SyncHandler) recycleDataObj(speechSync *SpeechSync) {
+	speechSync.dataInfo.ClearData()
+	syncHdler.syncPool.Put(speechSync)
 }
 
 // SetTimeout provide properties to set request ttl

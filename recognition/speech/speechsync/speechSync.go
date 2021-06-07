@@ -7,17 +7,24 @@ import (
 )
 
 // SpeechSync extends recognition.DataInfo to descripton speech file
-type SpeechSync struct {
-	dataInfo *tupumodel.DataInfo
-}
+type (
+	SpeechSync struct {
+		dataInfo *tupumodel.DataInfo
+	}
 
-func newSpeechSync() *SpeechSync {
+	SyncOptFunc func(*SpeechSync)
+)
+
+func newSpeechSync(optFuncs ...tupumodel.OptFunc) *SpeechSync {
 	var (
 		speech   = new(SpeechSync)
 		dataInfo = new(tupumodel.DataInfo)
 	)
 	dataInfo.SetFileType("speech")
 	speech.dataInfo = dataInfo
+	for _, setConf := range optFuncs {
+		setConf(dataInfo)
+	}
 	return speech
 }
 
@@ -64,4 +71,11 @@ func NewBinarySpeech(buf []byte, fileName string) *SpeechSync {
 // ClearBuffer is an helper to clear speech binary content
 func (speech *SpeechSync) ClearBuffer() {
 	speech.dataInfo.ClearBuffer()
+}
+
+// InitConf provide uniform entry setting attributes
+func (spSync *SpeechSync) InitConf(options ...tupumodel.OptFunc) {
+	for _, opt := range options {
+		opt(spSync.dataInfo)
+	}
 }

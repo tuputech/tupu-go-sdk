@@ -175,7 +175,7 @@ func (hdler *Handler) RecognizeWithJSON(jsonStr, secretID string) (result string
 // Recognize is the major method for initiating a recognition request
 func (hdler *Handler) Recognize(secretID string, dataInfoSlice []*tupumodel.DataInfo, tasks []string) (result string, statusCode int, e error) {
 	// Only 10 data can be carried in one request
-	if len(dataInfoSlice) > 10 || tupuerrorlib.StringIsEmpty(secretID) {
+	if tupuerrorlib.StringIsEmpty(secretID) {
 		result = ""
 		statusCode = 400
 		e = fmt.Errorf("%s, %s", tupuerrorlib.ErrorParamsIsEmpty, tupuerrorlib.GetCallerFuncName())

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"sync"
 
 	tupucontrol "github.com/tuputech/tupu-go-sdk/lib/controller"
 	tupuerror "github.com/tuputech/tupu-go-sdk/lib/errorlib"
@@ -16,20 +17,23 @@ var (
 	ImageRecognitionURL   = "http://api.open.tuputech.com/v3/recognition/"
 )
 
-type config struct {
-	tags  []string
-	tasks []string
-}
-type options func(*config)
+type (
+	config struct {
+		tags  []string
+		tasks []string
+	}
+	options func(*config)
 
-// Handler is a client-side helper to access TUPU visual recognition service
-type Handler struct {
-	hdler *tupucontrol.Handler
-	//
-	UID       string //for sub-user statistics and billing
-	UserAgent string
-	Client    *http.Client
-}
+	// Handler is a client-side helper to access TUPU visual recognition service
+	Handler struct {
+		hdler   *tupucontrol.Handler
+		Client  *http.Client
+		imgPool sync.Pool
+		//
+		UID       string //for sub-user statistics and billing
+		UserAgent string
+	}
+)
 
 // NewHandler is an initializer for a Handler
 func NewHandler(privateKeyPath string) (*Handler, error) {
@@ -69,8 +73,11 @@ func (h *Handler) WithTasks(tasks []string) options {
 // PerformWithURL is a shortcut for initiating a recognition request with URLs of images
 func (h *Handler) PerformWithURL(secretID string, imageURLs []string, options ...func(*config)) (result string, statusCode int, e error) {
 	var images []*Image
-	for _, val := range imageURLs {
-		images = append(images, NewRemoteImage(val))
+	for index, val := range imageURLs {
+		img := h.imgPool.Get().(*Image)
+		img.InitConf(tupumodel.WithFileURL(val))
+		images[index] = img
+		defer h.recycleDataObj(img)
 	}
 	var c config
 	for _, fn := range options {
@@ -81,9 +88,12 @@ func (h *Handler) PerformWithURL(secretID string, imageURLs []string, options ..
 
 // PerformWithPath is a shortcut for initiating a recognition request with paths of images
 func (h *Handler) PerformWithPath(secretID string, imagePaths []string, options ...func(*config)) (result string, statusCode int, e error) {
-	var images []*Image
-	for _, val := range imagePaths {
-		images = append(images, NewLocalImage(val))
+	images := make([]*Image, len(imagePaths))
+	for i, val := range imagePaths {
+		img := h.imgPool.Get().(*Image)
+		img.InitConf(tupumodel.WithLocalPath(val))
+		images[i] = img
+		defer h.recycleDataObj(img)
 	}
 	var c config
 	for _, fn := range options {
@@ -99,16 +109,10 @@ func (h *Handler) Perform(secretID string, images []*Image, tags []string, tasks
 		e = fmt.Errorf("%s, %s", tupuerror.ErrorParamsIsEmpty, tupuerror.GetCallerFuncName())
 	}
 
-	// once request only can carry in 10 images
-	if len(images) > 10 {
-		e = fmt.Errorf("Once request only can bring 10 images")
-		return
-	}
-
 	var (
 		tagsLen       = len(tags)
 		imagesLen     = len(images)
-		dataInfoSlice = make([]*tupumodel.DataInfo, 0)
+		dataInfoSlice = make([]*tupumodel.DataInfo, imagesLen+1)
 	)
 
 	for i := 0; i < imagesLen; i++ {
@@ -116,9 +120,14 @@ func (h *Handler) Perform(secretID string, images []*Image, tags []string, tasks
 		if i < tagsLen {
 			images[i].dataInfo.OtherMsg["tag"] = tags[i]
 		}
-		dataInfoSlice = append(dataInfoSlice, images[i].dataInfo)
+		dataInfoSlice[i] = images[i].dataInfo
 	}
 
 	return h.hdler.Recognize(secretID, dataInfoSlice, tasks)
 
+}
+
+func (h *Handler) recycleDataObj(img *Image) {
+	img.dataInfo.ClearData()
+	h.imgPool.Put(img)
 }
