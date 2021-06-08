@@ -45,7 +45,9 @@ Golang SDK for TUPU visual recognition service (v1.6.1)
 
 ## Example
 
-⚠️  **NOTICE:** All tupu-go-sdk examples have been moved as standalone repository to [here](https://github.com/tuputech/examples/go).
+1. [Image recognition interface example](./example/imagedemo/image.go)  
+2. [shortSpeech recognition interface example](./example/speechdemo/sync/short-speech.go)  
+3. [longSpeech recognition interface example](./example/speechdemo/async/long-speech.go) 
 
 ## Image Recognition API
 
