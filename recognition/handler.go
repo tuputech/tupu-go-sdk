@@ -45,6 +45,9 @@ func NewHandler(privateKeyPath string) (*Handler, error) {
 	if e != nil {
 		return nil, e
 	}
+	h.imgPool.New = func() interface{} {
+		return newImage()
+	}
 	return h, nil
 }
 
@@ -72,7 +75,7 @@ func (h *Handler) WithTasks(tasks []string) options {
 
 // PerformWithURL is a shortcut for initiating a recognition request with URLs of images
 func (h *Handler) PerformWithURL(secretID string, imageURLs []string, options ...func(*config)) (result string, statusCode int, e error) {
-	var images []*Image
+	images := make([]*Image, len(imageURLs))
 	for index, val := range imageURLs {
 		img := h.imgPool.Get().(*Image)
 		img.InitConf(tupumodel.WithFileURL(val))
@@ -112,7 +115,7 @@ func (h *Handler) Perform(secretID string, images []*Image, tags []string, tasks
 	var (
 		tagsLen       = len(tags)
 		imagesLen     = len(images)
-		dataInfoSlice = make([]*tupumodel.DataInfo, imagesLen+1)
+		dataInfoSlice = make([]*tupumodel.DataInfo, imagesLen)
 	)
 
 	for i := 0; i < imagesLen; i++ {

@@ -59,7 +59,7 @@ func (syncHdler *SyncHandler) PerformWithBinary(secretID string, binaryData map[
 	}
 
 	var (
-		dataInfoSlice = make([]*tupumodel.DataInfo, len(binaryData)+1)
+		dataInfoSlice = make([]*tupumodel.DataInfo, len(binaryData))
 		index         = 0
 		speechSync    *SpeechSync
 	)
@@ -87,7 +87,7 @@ func (syncHdler *SyncHandler) PerformWithURL(secretID string, URLs []string, tas
 	}
 
 	var (
-		dataInfoSlice = make([]*tupumodel.DataInfo, len(URLs)+1)
+		dataInfoSlice = make([]*tupumodel.DataInfo, len(URLs))
 		speechSync    *SpeechSync
 	)
 
@@ -115,7 +115,7 @@ func (syncHdler *SyncHandler) PerformWithPath(secretID string, speechPaths []str
 	}
 
 	var (
-		dataInfoSlice = make([]*tupumodel.DataInfo, len(speechPaths)+1)
+		dataInfoSlice = make([]*tupumodel.DataInfo, len(speechPaths))
 		speechSync    *SpeechSync
 	)
 
