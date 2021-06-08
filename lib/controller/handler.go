@@ -40,6 +40,7 @@ const (
 
 // Handler is a client-side helper to access TUPU recognition service
 type Handler struct {
+	Client   *http.Client
 	apiURL   string
 	signer   tuputools.Signer
 	verifier tuputools.Verifier
@@ -52,7 +53,6 @@ type Handler struct {
 	// Timeout is the request Header: Timeout
 	Timeout string
 	// Client is the *http.Client object
-	Client *http.Client
 }
 
 // NewHandlerWithURL is also an initializer for a Handler

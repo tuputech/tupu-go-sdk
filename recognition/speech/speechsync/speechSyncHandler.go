@@ -16,8 +16,8 @@ const (
 
 // SyncHandler is a client-side helper to access TUPU speech recognition service
 type SyncHandler struct {
-	hdler    *tupucontrol.Handler
 	syncPool sync.Pool
+	hdler    *tupucontrol.Handler
 }
 
 // NewSyncHandler is an initializer for a SpeechHandler

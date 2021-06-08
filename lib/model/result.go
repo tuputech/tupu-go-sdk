@@ -7,9 +7,9 @@ import (
 
 // Result is a wrapper for service result parsed from response
 type Result struct {
+	Code      int
 	Timestamp int64
 	Nonce     string
-	Code      int
 	Message   string
 	Tasks     map[string]interface{}
 	Others    map[string]interface{}

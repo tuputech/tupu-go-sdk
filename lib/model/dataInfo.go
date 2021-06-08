@@ -8,6 +8,8 @@ import (
 
 // DataInfo is a wrapper for storing url, path or binary content of the data
 type DataInfo struct {
+	// Buf is the binary data of the file
+	Buf *bytes.Buffer
 	// FileType Identifies this file type for request parameters
 	FileType string
 	// RemoteInfo is the remote address of the file
@@ -16,8 +18,6 @@ type DataInfo struct {
 	Path string
 	// FileName is the rename of the file by caller user
 	FileName string
-	// Buf is the binary data of the file
-	Buf *bytes.Buffer
 	// OtherMsg is the other accompanying message
 	OtherMsg map[string]string
 }

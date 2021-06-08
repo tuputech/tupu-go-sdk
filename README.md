@@ -7,7 +7,7 @@ Golang SDK for TUPU visual recognition service (v1.6.1)
 ## Changelogs
 
 #### v1.7.4
-- image remove limited and performance optimization
+- image remove limited and memory optimization
 #### v1.7.3
 - image api with function options
 #### v1.7.2
