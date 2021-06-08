@@ -40,6 +40,7 @@ const (
 
 // Handler is a client-side helper to access TUPU recognition service
 type Handler struct {
+	Client   *http.Client
 	apiURL   string
 	signer   tuputools.Signer
 	verifier tuputools.Verifier
@@ -52,7 +53,6 @@ type Handler struct {
 	// Timeout is the request Header: Timeout
 	Timeout string
 	// Client is the *http.Client object
-	Client *http.Client
 }
 
 // NewHandlerWithURL is also an initializer for a Handler
@@ -175,7 +175,7 @@ func (hdler *Handler) RecognizeWithJSON(jsonStr, secretID string) (result string
 // Recognize is the major method for initiating a recognition request
 func (hdler *Handler) Recognize(secretID string, dataInfoSlice []*tupumodel.DataInfo, tasks []string) (result string, statusCode int, e error) {
 	// Only 10 data can be carried in one request
-	if len(dataInfoSlice) > 10 || tupuerrorlib.StringIsEmpty(secretID) {
+	if tupuerrorlib.StringIsEmpty(secretID) {
 		result = ""
 		statusCode = 400
 		e = fmt.Errorf("%s, %s", tupuerrorlib.ErrorParamsIsEmpty, tupuerrorlib.GetCallerFuncName())

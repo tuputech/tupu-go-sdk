@@ -8,9 +8,13 @@ import (
 )
 
 // Image is a wrapper for storing url, path or binary content of an image
-type Image struct {
-	dataInfo *tupumodel.DataInfo
-}
+type (
+	Image struct {
+		dataInfo *tupumodel.DataInfo
+	}
+
+	imgOptFunc func(*Image)
+)
 
 func newImage() *Image {
 	img := new(Image)
@@ -65,4 +69,10 @@ func NewBinaryImage(buf []byte, filename string) *Image {
 // ClearBuffer is an helper to set property tag of Image and return Image itself
 func (img *Image) ClearBuffer() {
 	img.dataInfo.Buf = nil
+}
+
+func (img *Image) InitConf(optFuncs ...tupumodel.OptFunc) {
+	for _, optFunc := range optFuncs {
+		optFunc(img.dataInfo)
+	}
 }
