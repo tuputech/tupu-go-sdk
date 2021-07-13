@@ -11,14 +11,12 @@ import (
 )
 
 func main() {
-	secretID := "your secretID"
+	secretID := "Your SecretID"
 	handler, e := rcn.NewHandler("rsa_private_key.pem")
 	if e != nil {
 		fmt.Printf("Failed: %v\n", e)
 		return
 	}
-	//Optional Step: set identity of sub-user if necessary
-	handler.UID = "bucket-of-jackbauer"
 
 	//Optional Step: using http-client created by your own
 	// tr := &http.Transport{
@@ -28,15 +26,27 @@ func main() {
 	// }
 	// handler.Client = &http.Client{Transport: tr}
 
-	url1 := "your speech url1"
-	url2 := "your speech url2"
-	images1 := []string{url1, url2}
-	//No tag for images
-	printResult(handler.PerformWithURL(secretID, images1, nil))
-	//Number of tags less than number of images, the rest images will use the last tag
-	printResult(handler.PerformWithURL(secretID, images1, []string{"Remote Image"}))
+	images1 := []string{"your image url"}
 
-	//Using local file or binary data
+	// just for images
+	printResult(handler.PerformWithURL(secretID, images1))
+
+	// Number of tags less than number of images, the rest images will use the last tag
+	tags := []string{"image tag"}
+	printResult(handler.PerformWithURL(secretID, images1, handler.WithTags(tags)))
+
+	// run by appoint task
+	tasks := []string{"54bcfc6c329af61034f7c2fc"}
+	printResult(handler.PerformWithURL(secretID, images1, handler.WithTasks(tasks)))
+
+	// with tag and run by appoint task
+	printResult(handler.PerformWithURL(secretID, images1, handler.WithTasks(tasks), handler.WithTags(tags)))
+
+	// Using local file path
+	filepaths := []string{"your filepath"}
+	printResult(handler.PerformWithPath(secretID, filepaths, handler.WithTags(tags)))
+
+	// Using local file or binary data
 	fileBytes, e2 := ioutil.ReadFile("your speech filePath")
 	if e2 != nil {
 		fmt.Printf("Could not load image: %v", e2)
@@ -45,7 +55,7 @@ func main() {
 	imgBinary := rcn.NewBinaryImage(fileBytes, "1.jpg")
 	defer imgBinary.ClearBuffer()
 	images2 := []*rcn.Image{rcn.NewLocalImage("your speech filePath"), imgBinary}
-	printResult(handler.Perform(secretID, images2, []string{"Local Image", "Using Buffer"}))
+	printResult(handler.Perform(secretID, images2, []string{"Local Image", "Using Buffer"}, nil))
 }
 
 func printResult(result string, statusCode int, e error) {

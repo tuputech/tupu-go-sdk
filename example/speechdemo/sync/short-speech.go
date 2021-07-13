@@ -95,16 +95,16 @@ func printResult(result string, statusCode int, err error) {
 	message, e = rlt.Get("message").String()
 	timestamp, e = rlt.Get("timestamp").Int64()
 	timestamp = int64(float64(timestamp) / 1000)
-	// pase vulgar speech
-	task, e = rlt.Get("5c8213b9bc807806aab0a574").Map()
-	if e != nil {
-		fmt.Println("decode error")
-		return
-	}
+	// parse vulgar speech
+	// task, e = rlt.Get("5c8213b9bc807806aab0a574").Map()
+	// if e != nil {
+	// 	fmt.Println("decode error")
+	// 	return
+	// }
 
 	fmt.Printf("- Code: %v %v\n- Time: %v\n", code, message, time.Unix(timestamp, 0))
-	for k, v := range task {
-		fmt.Printf("- Task: [%v]\n%v\n", k, v)
-	}
+	// for k, v := range task {
+	// 	fmt.Printf("- Task: [%v]\n%v\n", k, v)
+	// }
 	fmt.Println("----------------------\n")
 }
