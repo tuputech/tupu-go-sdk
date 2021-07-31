@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/bitly/go-simplejson"
-	spch "github.com/tuputech/tupu-go-sdk/recognition/speech/shortsync"
+	spch "github.com/tuputech/tupu-go-sdk/recognition/speech/speechsync"
 )
 
 func main() {
@@ -15,9 +15,8 @@ func main() {
 	// step1. get your secretID
 	secretID := "your secretID"
 	privateKeyPath := "rsa_private_key.pem"
-	serverURL := ""
 	// step2. create speech handler
-	speechHandler, err := spch.NewShortSpeechHandler(privateKeyPath, serverURL)
+	speechHandler, err := spch.NewSyncHandler(privateKeyPath)
 	if err != nil {
 		fmt.Println("-------- ERROR ----------")
 		return
@@ -34,7 +33,7 @@ func main() {
 	testSpeechAPIWithBinary(secretID, speechHandler)
 }
 
-func testSpeechAPIWithBinary(secretID string, speechHandler *spch.ShortSpeechHandler) {
+func testSpeechAPIWithBinary(secretID string, speechHandler *spch.SyncHandler) {
 	//Using local file or binary data
 	filePath := "your speech filePath"
 	fileBytes, e2 := ioutil.ReadFile(filePath)
@@ -47,25 +46,25 @@ func testSpeechAPIWithBinary(secretID string, speechHandler *spch.ShortSpeechHan
 		filepath.Base(filePath): fileBytes,
 	}
 
-	printResult(speechHandler.PerformWithBinary(secretID, speechSlice, 0))
+	printResult(speechHandler.PerformWithBinary(secretID, speechSlice))
 }
 
-func testSpeechAPIWithPath(secretID string, speechHandler *spch.ShortSpeechHandler) {
+func testSpeechAPIWithPath(secretID string, speechHandler *spch.SyncHandler) {
 	// step1. get speech file path
 	speechPaths := []string{
 		"your speech filePath",
 	}
 
 	// step2. get result of speech recognition API
-	printResult(speechHandler.PerformWithPath(secretID, speechPaths, 0))
+	printResult(speechHandler.PerformWithPath(secretID, speechPaths))
 }
 
-func testSpeechAPIWithURL(secretID string, speechHandler *spch.ShortSpeechHandler) {
+func testSpeechAPIWithURL(secretID string, speechHandler *spch.SyncHandler) {
 	// step1. get speech file url
 	speechURLs := []string{
 		"your speech url",
 	}
-	printResult(speechHandler.PerformWithURL(secretID, speechURLs, 0))
+	printResult(speechHandler.PerformWithURL(secretID, speechURLs))
 }
 
 func printResult(result string, statusCode int, err error) {
@@ -95,6 +94,7 @@ func printResult(result string, statusCode int, err error) {
 	message, e = rlt.Get("message").String()
 	timestamp, e = rlt.Get("timestamp").Int64()
 	timestamp = int64(float64(timestamp) / 1000)
+	task, e = rlt.Map()
 	// parse vulgar speech
 	// task, e = rlt.Get("5c8213b9bc807806aab0a574").Map()
 	// if e != nil {
@@ -103,8 +103,8 @@ func printResult(result string, statusCode int, err error) {
 	// }
 
 	fmt.Printf("- Code: %v %v\n- Time: %v\n", code, message, time.Unix(timestamp, 0))
-	// for k, v := range task {
-	// 	fmt.Printf("- Task: [%v]\n%v\n", k, v)
-	// }
-	fmt.Println("----------------------\n")
+	for k, v := range task {
+		fmt.Printf("- Task: [%v]\n%v\n", k, v)
+	}
+	fmt.Println("----------------------")
 }

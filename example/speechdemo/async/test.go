@@ -5,31 +5,36 @@ import (
 	"time"
 
 	"github.com/bitly/go-simplejson"
-	longSpch "github.com/tuputech/tupu-go-sdk/recognition/speech/longasync"
+	SPCHAS "github.com/tuputech/tupu-go-sdk/recognition/speech/speechasync"
 )
 
 func main() {
 
-	// step1. get your secretID
-	secretID := "your secretID"
-	privateKeyPath := "rsa_private_key.pem"
-	// empty string will using default server url
-	serverURL := ""
+	var (
+		// step1. get your secretID
+		secretID string = "your secretID"
+		// your rsa_private_key local path
+		privateKeyPath string = "rsa_private_key.pem"
+		// your receive recognition result server url
+		callbackUrl string = "your server url"
+		// your need to recogniton speech url
+		speechUrl string = "your speech url"
+		// empty string will using default server url
+	)
 
 	// step2. create speech handler
-	speechHandler, err := longSpch.NewSpeechHandler(privateKeyPath, serverURL)
+	speechHandler, err := SPCHAS.NewSpeechHandler(privateKeyPath)
 	if err != nil {
 		fmt.Println("-------- ERROR ----------")
 		return
 	}
-	// step3. create LongSpeech object
-	longSpeech := &longSpch.LongSpeech{
-		FileRemoteURL: "your speech url",
-		CallbackURL:   "your callback url",
-	}
 
+	// step3. recognition
 	// start recognition and get result
-	result, statusCode, err := speechHandler.Perform(secretID, longSpeech, 0)
+	// WithXXXX function is optional for api request params
+	// e.g. simple to use
+	// result, statusCode, err := speechHandler.Perform(secretID, speechUrl, callbackUrl)
+	result, statusCode, err := speechHandler.Perform(secretID, speechUrl, callbackUrl, SPCHAS.WithCallbackRule(SPCHAS.CallbackRuleALL), SPCHAS.WithUserId("testId"))
 	printResult(result, statusCode, err)
 }
 

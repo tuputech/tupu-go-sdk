@@ -2,8 +2,6 @@
 .DS_Store
 
 .vscode/
-go.mod
-go.sum
 
 test/img/
 
