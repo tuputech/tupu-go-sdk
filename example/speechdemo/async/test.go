@@ -75,5 +75,5 @@ func printResult(result string, statusCode int, err error) {
 	for k, v := range task {
 		fmt.Printf("- Result: [%v]\n\t%v\n", k, v)
 	}
-	fmt.Println("----------------------\n")
+	fmt.Println("----------------------")
 }
