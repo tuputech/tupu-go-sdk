@@ -6,6 +6,9 @@ Golang SDK for TUPU visual recognition service (v1.6.1)
 
 ## Changelogs
 
+#### v1.9.0
+- add video(async/sync) sdk and adjust speech async sdk
+
 #### v1.8.0
 - add testSync method and lib
 
