@@ -12,7 +12,7 @@ import (
 
 const (
 	// SpeechAsyncAPIURL is default
-	SpeechAsyncAPIURL = "http://api.open.tuputech.com/v3/recognition/speech/recording/async/"
+	SpeechAsyncAPIURL = "http://api.speech.tuputech.com/v3/recognition/speech/recording/async/"
 )
 
 // AsyncHandler is a client-side helper to access TUPU async speech recognition service
@@ -70,10 +70,10 @@ func (asyncHdler *AsyncHandler) SetServerURL(url string) {
 // }
 
 // Perform is the major method for initiating a recognition request
-func (asyncHdler *AsyncHandler) Perform(secretID, speechUrl, callbackUrl string, optFuncs ...SPAsyncOptFunc) (result string, statusCode int, err error) {
+func (asyncHdler *AsyncHandler) Perform(secretID, speechUrl string, optFuncs ...SPAsyncOptFunc) (result string, statusCode int, err error) {
 
 	// step1. Invalid parameter check
-	if tupuerror.StringIsEmpty(secretID, speechUrl, callbackUrl) {
+	if tupuerror.StringIsEmpty(secretID, speechUrl) {
 		statusCode = 400
 		err = fmt.Errorf("[Params ERROR]: now func: %s\tcaller func: %s ", tupuerror.GetCurrentFuncName(), tupuerror.GetCallerFuncName())
 		return
@@ -90,7 +90,6 @@ func (asyncHdler *AsyncHandler) Perform(secretID, speechUrl, callbackUrl string,
 
 	// set optional params
 	speechAsync.FileRemoteURL = speechUrl
-	speechAsync.CallbackURL = callbackUrl
 
 	for _, setConf := range optFuncs {
 		setConf(speechAsync)

@@ -10,6 +10,7 @@ import (
 	"io"
 	"math/rand"
 	"mime/multipart"
+	"net"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -117,7 +118,17 @@ func (hdler *Handler) initHandler() {
 	hdler.UserAgent = DefaultUserAgent
 	hdler.ContentType = DefaultContentType
 	hdler.Timeout = "30"
-	hdler.Client = &http.Client{}
+	// 长连接复用
+	transport := &http.Transport{DialContext: (&net.Dialer{
+		Timeout:   30 * time.Second,
+		KeepAlive: 60 * time.Second,
+	}).DialContext,
+		MaxIdleConns:          500,
+		IdleConnTimeout:       60 * time.Second,
+		ExpectContinueTimeout: 30 * time.Second,
+		MaxIdleConnsPerHost:   100,
+	}
+	hdler.Client = &http.Client{Transport: transport}
 }
 
 // RecognizeWithJSON is one of major method to access recognition api
