@@ -34,7 +34,7 @@ func main() {
 	// WithXXXX function is optional for api request params
 	// e.g. simple to use
 	// result, statusCode, err := speechHandler.Perform(secretID, speechUrl, callbackUrl)
-	result, statusCode, err := speechHandler.Perform(secretID, speechUrl, callbackUrl, SPCHAS.WithCallbackRule(SPCHAS.CallbackRuleALL), SPCHAS.WithUserId("testId"))
+	result, statusCode, err := speechHandler.Perform(secretID, speechUrl, SPCHAS.WithCallbackURL(callbackUrl), SPCHAS.WithCallbackRule(SPCHAS.CallbackRuleALL), SPCHAS.WithUserId("testId"))
 	printResult(result, statusCode, err)
 }
 

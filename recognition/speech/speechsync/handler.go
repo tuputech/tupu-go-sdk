@@ -11,7 +11,7 @@ import (
 
 const (
 	// SpeechSyncAPIURL is default recording service address
-	SpeechSyncAPIURL = "http://api.open.tuputech.com/v3/recognition/speech/"
+	SpeechSyncAPIURL = "http://api.speech.tuputech.com/v3/recognition/speech/"
 )
 
 // SyncHandler is a client-side helper to access TUPU speech recognition service

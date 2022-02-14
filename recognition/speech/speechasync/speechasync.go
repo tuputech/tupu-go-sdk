@@ -6,7 +6,7 @@ type (
 		// FileRemoteURL represents the address of the long voice, can't be empty
 		FileRemoteURL string `json:"url"`
 		// CallbackUrl represents the address of the callback result, cant' be empty
-		CallbackURL string `json:"callbackUrl"`
+		CallbackURL string `json:"callbackUrl,omitempty"`
 		// CallbackRule represents the Rule of the callback, empty is using default rule, `all` is callback all result
 		CallbackRule string `json:"callbackRule,omitempty"`
 		// RoomID represents the room id
@@ -40,6 +40,12 @@ func newSpeechASync(optFuncs ...SPAsyncOptFunc) *SpeechAsync {
 		setConf(speech)
 	}
 	return speech
+}
+
+func WithCallbackURL(callbackURL string) SPAsyncOptFunc {
+	return func(sa *SpeechAsync) {
+		sa.CallbackURL = callbackURL
+	}
 }
 
 func WithCallbackRule(callbackRule string) SPAsyncOptFunc {
